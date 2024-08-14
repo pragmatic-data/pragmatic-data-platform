@@ -1,3 +1,13 @@
+/* ** formats the query result in markdown **
+USAGE:
+{#
+{% if execute %}
+    {% set agate_table = run_query(sql) %}
+    {{ pragmatic_data.agate_table_to_markdown(agate_table) }}
+{% endif %}
+#}
+ */
+
 {% macro agate_table_to_markdown(agate_table) %}
     {%- set t_header = ['| '] %}
     {%- set t_separator = ['| '] %}
