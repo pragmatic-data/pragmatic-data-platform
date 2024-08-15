@@ -37,7 +37,7 @@ src_data as (
     WHERE {{ source['where'] or 'true' }}   
 )
 
-{#%- if default_records %}
+{%- if default_records %}
 , default_record_inputs as (
     {%- for default_record in default_records -%}
         {%- for default_record_name, columns in default_record.items() %}
@@ -71,23 +71,24 @@ src_data as (
 , with_default_record as(
     SELECT * FROM src_data
 )
-{% endif %#}
-{#
+{% endif %}
+
 , hashed as (
     SELECT *,
-    {%- for hash_name, definition in hashed_columns.items() %}
-        {%- if definition is mapping and definition.is_hashdiff %}
-            {{ pdp_hash(definition['columns']) }} as {{ hash_name }}
-        {%- else %}
-            {{ pdp_hash(definition) }} as {{ hash_name }}
-        {%- endif %}
-        {%- if not loop.last %}, {% endif %}
-    {%- endfor %}
+    {% if hashed_columns is mapping %}        
+        {%- for hash_name, definition in hashed_columns.items() %}
+            {%- if definition is mapping and definition.is_hashdiff %}
+                {{ pragmatic_data.pdp_hash(definition['columns']) }} as {{ hash_name }}
+            {%- else %}
+                {{ pragmatic_data.pdp_hash(definition) }} as {{ hash_name }}
+            {%- endif %}
+            {%- if not loop.last %}, {% endif %}
+        {%- endfor %}
+    {% endif %}
     FROM with_default_record
 )
 
 SELECT * FROM hashed
-#}
 
 {%- if remove_duplicates %}
 {% set qualify_function = remove_duplicates['qualify_function'] if remove_duplicates['qualify_function'] else 'row_number()' %}
@@ -97,7 +98,5 @@ QUALIFY {{qualify_function}} OVER(
         ORDER BY{%- for c in remove_duplicates['order_by'] %} {{c}}{%- if not loop.last %}, {% endif %}{% endfor %}
     ) = {{qualify_value}}
 {%- endif -%}
-
-SELECT from src_data
 
 {%- endmacro %}

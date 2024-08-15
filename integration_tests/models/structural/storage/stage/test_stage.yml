@@ -13,7 +13,7 @@ models:
           - COLUMN_1: Column1
           - COLUMN_2: UPPER(Column2)
           - COLUMN_3: '!COL_4_CONSTANT'
-          - COLUMN_4: current_time()
+          - COLUMN_4: current_timestamp()
 
       default_records: &security_default_records
           - not_provided:    #-- def_record_1

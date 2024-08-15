@@ -25,3 +25,7 @@ models:
   pragmatic_data_integration_tests:
     +database: PDP_TEST
     +materialized: table
+
+seeds:
+  pragmatic_data_integration_tests:
+    +database: PDP_TEST
