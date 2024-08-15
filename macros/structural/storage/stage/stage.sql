@@ -21,28 +21,28 @@ src_data as (
         )
         {%- endif %}
         {% if source.columns.replace_columns %} REPLACE (
-            {{- column_expressions(source.columns.replace_columns)}}
+            {{- pragmatic_data.column_expressions(source.columns.replace_columns)}}
         )
         {%- endif %}
         {% if source.columns.rename_columns %} RENAME (
-            {{- column_expressions(source.columns.rename_columns)}}
+            {{- pragmatic_data.column_expressions(source.columns.rename_columns)}}
         )
         {%- endif %}
     {%- endif %}
 
     {%- if source.columns.include_all and calculated_columns %},{% endif %}
-    {{- column_expressions(calculated_columns)}}
+    {{- pragmatic_data.column_expressions(calculated_columns)}}
 
     FROM {{ source.model }}
     WHERE {{ source['where'] or 'true' }}   
 )
 
-{%- if default_records %}
+{#%- if default_records %}
 , default_record_inputs as (
     {%- for default_record in default_records -%}
         {%- for default_record_name, columns in default_record.items() %}
     SELECT '{{default_record_name}}' as default_record_name, 
-    {{- column_expressions(columns)}}
+    {{- pragmatic_data.column_expressions(columns)}}
         {%- endfor %}
     {% if not loop.last %}UNION ALL {% endif -%}
     {%- endfor -%}
@@ -71,8 +71,8 @@ src_data as (
 , with_default_record as(
     SELECT * FROM src_data
 )
-{% endif %}
-
+{% endif %#}
+{#
 , hashed as (
     SELECT *,
     {%- for hash_name, definition in hashed_columns.items() %}
@@ -87,6 +87,8 @@ src_data as (
 )
 
 SELECT * FROM hashed
+#}
+
 {%- if remove_duplicates %}
 {% set qualify_function = remove_duplicates['qualify_function'] if remove_duplicates['qualify_function'] else 'row_number()' %}
 {% set qualify_value = remove_duplicates['qualify_value'] if remove_duplicates['qualify_value'] else '1' %}
@@ -95,5 +97,7 @@ QUALIFY {{qualify_function}} OVER(
         ORDER BY{%- for c in remove_duplicates['order_by'] %} {{c}}{%- if not loop.last %}, {% endif %}{% endfor %}
     ) = {{qualify_value}}
 {%- endif -%}
-    
+
+SELECT from src_data
+
 {%- endmacro %}
