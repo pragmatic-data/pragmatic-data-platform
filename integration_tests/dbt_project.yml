@@ -1,5 +1,5 @@
 
-name: 'pragmatic_data'
+name: 'pragmatic_data_integration_tests'
 version: '0.1.0'
 config-version: 2
 
@@ -7,11 +7,11 @@ config-version: 2
 profile: 'default'
 
 # These configurations specify where dbt should look for different types of files.
-model-paths: ["models"]
 analysis-paths: ["analyses"]
-test-paths: ["tests"]
-seed-paths: ["seeds"]
 macro-paths: ["macros"]
+model-paths: ["models"]
+seed-paths: ["seeds"]
+test-paths: ["tests"]
 snapshot-paths: ["snapshots"]
 
 target-path: "target"  # directory which will store compiled SQL files
@@ -22,5 +22,6 @@ clean-targets:         # directories to be removed by `dbt clean`
 
 # Configuring models
 models:
-  pragmatic_data:
+  pragmatic_data_integration_tests:
+    +database: PDP_TEST
     +materialized: table
