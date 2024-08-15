@@ -1,0 +1,56 @@
+version: 2
+
+models:
+
+
+  - name: ABSTRACT_STG_MODEL
+    config:
+      source_columns: &stg_model_source_columns
+          - Column1
+          - Column2
+
+      calculated_columns: &stg_model_calculated_columns
+          - COLUMN_1: Column1
+          - COLUMN_2: UPPER(Column2)
+          - COLUMN_3: '!COL_4_CONSTANT'
+          - COLUMN_4: current_time()
+
+      default_records: &security_default_records
+          - not_provided:    #-- def_record_1
+              - COLUMN_1: "'-1'"                              #-- String literals either as "'string'" or '!string'
+              - COLUMN_2: '!NOT Provided (optional)'          #-- String literals either as "'string'" or '!string'
+              - COLUMN_3: '!System.DefaultRecord'
+              - COLUMN_4: "'{{ run_started_at }}'::timestamp"
+          - missing:          #-- def_record_2
+              - COLUMN_1: "'-2'"                              #-- String literals either as "'string'" or '!string'
+              - COLUMN_2: '!Missing (required data)'          #-- String literals either as "'string'" or '!string'
+              - COLUMN_3: '!System.DefaultRecord'
+              - COLUMN_4: "'{{ run_started_at }}'::timestamp"
+
+      hashed_columns: &stg_model_hashed_columns
+        MODEL_HKEY:
+          - COLUMN_1
+        OTHER_HKEY:
+          - COLUMN_1
+          - COLUMN_2
+
+        MODEL_HDIFF:
+          - COLUMN_1
+          - COLUMN_2
+          - COLUMN_3
+          - COLUMN_4
+
+
+  - name: TEST_STAGE__EXTERNAL_CONFIG
+    config:
+      source_columns:     *stg_model_source_columns
+      calculated_columns: *stg_model_calculated_columns
+      x_calculated_columns: 
+        <<: *stg_model_calculated_columns
+        EFFECTIVITY_DATE: REPORTDATE::TIMESTAMP_NTZ
+      y_calculated_columns: 
+        <<: *stg_model_calculated_columns
+
+      default_records:    *security_default_records
+      hashed_columns:     *stg_model_hashed_columns
+      remove_duplicates: 
