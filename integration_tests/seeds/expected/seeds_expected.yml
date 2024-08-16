@@ -1,0 +1,14 @@
+version: 2
+
+seeds:
+
+  - name: TEST_STAGE__EXPECTED
+    config:      
+      column_types:
+        COLUMN_1: text
+        COLUMN_2: text
+        COLUMN_3: text
+        COLUMN_4: timestamp_ntz
+        MODEL_HKEY: binary
+        OTHER_HKEY: binary
+        MODEL_HDIFF: binary

@@ -1,19 +1,17 @@
 {%- macro stage( 
-    source,
+    source_model,
+    source = none,
     calculated_columns = none,
     hashed_columns = none,
     default_records = none,
     remove_duplicates = none
 ) -%}
 
-{%- if execute and not source.model %}
-    {{ exceptions.raise_compiler_error('No source model provided.') }}
-{% endif %}
 
 WITH
 src_data as (
     SELECT 
-    {%- if source.columns.include_all %} *
+    {%- if source is mapping and source.columns.include_all %} *
         {% if source.columns.exclude_columns %} EXCLUDE (
             {%- for col in source.columns.exclude_columns -%}
                {{col}}{% if not loop.last %}, {% endif -%}
@@ -30,11 +28,11 @@ src_data as (
         {%- endif %}
     {%- endif %}
 
-    {%- if source.columns.include_all and calculated_columns %},{% endif %}
+    {%- if source is mapping and source.columns.include_all and calculated_columns %},{% endif %}
     {{- pragmatic_data.column_expressions(calculated_columns)}}
 
-    FROM {{ source.model }}
-    WHERE {{ source['where'] or 'true' }}   
+    FROM {{ source_model }}
+    WHERE {{ source.where or 'true' }}   
 )
 
 {%- if default_records %}
@@ -59,8 +57,7 @@ src_data as (
     {%- endfor -%}
       )
     FROM default_record_inputs as d
-    LEFT OUTER JOIN (SELECT * FROM src_data WHERE false) as r
-        ON(d.default_record_name = r.$1)
+    LEFT OUTER JOIN (SELECT * FROM src_data WHERE false) as r ON(false)
 ) 
 , with_default_record as(
     SELECT * FROM src_data
@@ -75,16 +72,22 @@ src_data as (
 
 , hashed as (
     SELECT *,
-    {% if hashed_columns is mapping %}        
-        {%- for hash_name, definition in hashed_columns.items() %}
+    {%- if hashed_columns is mapping %}
+        {%- set hashed_columns = [hashed_columns] %}
+    {%- endif %}
+    {%- for hash_definition in hashed_columns %}
+        {%- if hash_definition is mapping %}
+        {%- set outer_loop = loop %}
+        {%- for hash_name, definition in hash_definition.items() %}
             {%- if definition is mapping and definition.is_hashdiff %}
                 {{ pragmatic_data.pdp_hash(definition['columns']) }} as {{ hash_name }}
             {%- else %}
                 {{ pragmatic_data.pdp_hash(definition) }} as {{ hash_name }}
             {%- endif %}
-            {%- if not loop.last %}, {% endif %}
+            {%- if not outer_loop.last or not loop.last %}, {% endif %}
         {%- endfor %}
-    {% endif %}
+        {%- endif %}
+    {%- endfor %}
     FROM with_default_record
 )
 

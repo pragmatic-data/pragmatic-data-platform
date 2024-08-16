@@ -24,8 +24,13 @@ clean-targets:         # directories to be removed by `dbt clean`
 models:
   pragmatic_data_integration_tests:
     +database: PDP_TEST
+    +schema: MODELS
     +materialized: table
 
 seeds:
   pragmatic_data_integration_tests:
     +database: PDP_TEST
+    inputs:
+      +schema: INPUTS
+    expected:
+      +schema: EXPECTED
