@@ -1,3 +1,4 @@
+{{ config(enabled = false) }}
 
 {%- set yaml_str -%}
 source:
@@ -22,13 +23,14 @@ Y_calcl_cols:
 
 {{ metadata_dict['Z_calcl_cols'] }}
 {{ metadata_dict['Y_calcl_cols'] }}
-{{ config.require('calculated_columns')  }}
-{{ config.require('x_calculated_columns') }}
+{#{ config.require('calculated_columns')  }#}
+{#{ config.require('x_calculated_columns') }#}
 --
 
 
     {#% set calculated_columns  = config.require('x_calculated_columns') %#}
     {% set calculated_columns  = metadata_dict['Y_calcl_cols'] %}
+
     {%- if calculated_columns is mapping %}
         {% for column_name, sql_expression in calculated_columns.items() %}
             {% if sql_expression %}
