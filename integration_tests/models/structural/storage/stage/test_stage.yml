@@ -71,7 +71,7 @@ models:
     config:
       source_columns:     *stg_model_source_columns
       source:             *stg_model_source
-      x_calculated_columns: 
+      flattened_extended_calculated_columns: 
         <<: *stg_model_calculated_columns
         EFFECTIVITY_DATE: "'{{ run_started_at }}'::TIMESTAMP_NTZ"
 
