@@ -9,23 +9,28 @@ models:
           - Column1
           - Column2
 
+      source: &stg_model_source
+          columns: 
+              include_all: false          #-- True enables using eclude / replace / rename lists // false does not include any source col
+          where: "Column1 != 'xxx'"
+
       calculated_columns: &stg_model_calculated_columns
           - COLUMN_1: Column1
           - COLUMN_2: UPPER(Column2)
           - COLUMN_3: '!COL_4_CONSTANT'
-          - COLUMN_4: current_time()
+          - COLUMN_4: "current_timestamp()::TIMESTAMP_NTZ"
 
       default_records: &security_default_records
           - not_provided:    #-- def_record_1
               - COLUMN_1: "'-1'"                              #-- String literals either as "'string'" or '!string'
               - COLUMN_2: '!NOT Provided (optional)'          #-- String literals either as "'string'" or '!string'
               - COLUMN_3: '!System.DefaultRecord'
-              - COLUMN_4: "'{{ run_started_at }}'::timestamp"
+              - COLUMN_4: "'{{ run_started_at }}'::TIMESTAMP_NTZ"
           - missing:          #-- def_record_2
               - COLUMN_1: "'-2'"                              #-- String literals either as "'string'" or '!string'
               - COLUMN_2: '!Missing (required data)'          #-- String literals either as "'string'" or '!string'
               - COLUMN_3: '!System.DefaultRecord'
-              - COLUMN_4: "'{{ run_started_at }}'::timestamp"
+              - COLUMN_4: "'{{ run_started_at }}'::TIMESTAMP_NTZ"
 
       hashed_columns: &stg_model_hashed_columns
         MODEL_HKEY:
@@ -38,19 +43,44 @@ models:
           - COLUMN_1
           - COLUMN_2
           - COLUMN_3
-          - COLUMN_4
 
+
+  - name: TEST_STAGE__LOCAL_CONFIG
+    data_tests:
+     - dbt_utils.equality:
+         compare_model: ref('TEST_STAGE__EXPECTED')
+         exclude_columns:
+          - COLUMN_4     
 
   - name: TEST_STAGE__EXTERNAL_CONFIG
     config:
       source_columns:     *stg_model_source_columns
+      source:             *stg_model_source
       calculated_columns: *stg_model_calculated_columns
-      x_calculated_columns: 
+      default_records:    *security_default_records
+      hashed_columns:     *stg_model_hashed_columns
+      remove_duplicates: 
+    data_tests:
+     - dbt_utils.equality:
+         compare_model: ref('TEST_STAGE__EXPECTED')
+         exclude_columns:
+          - COLUMN_4     
+
+
+  - name: TEST_STAGE__EXTERNAL_CONFIG_EXTENDED
+    config:
+      source_columns:     *stg_model_source_columns
+      source:             *stg_model_source
+      flattened_extended_calculated_columns: 
         <<: *stg_model_calculated_columns
-        EFFECTIVITY_DATE: REPORTDATE::TIMESTAMP_NTZ
-      y_calculated_columns: 
-        <<: *stg_model_calculated_columns
+        EFFECTIVITY_DATE: "'{{ run_started_at }}'::TIMESTAMP_NTZ"
 
       default_records:    *security_default_records
       hashed_columns:     *stg_model_hashed_columns
       remove_duplicates: 
+    data_tests:
+     - dbt_utils.equality:
+         compare_model: ref('TEST_STAGE__EXPECTED')
+         exclude_columns:
+          - COLUMN_4     
+          - EFFECTIVITY_DATE

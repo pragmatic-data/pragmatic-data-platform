@@ -1,0 +1,19 @@
+version: 2
+
+models:
+  - name: TEST_SELECT_FROM_TABLE
+    data_tests:
+      - dbt_utils.expression_is_true:
+          expression: "len(Column1) + len(Column2) = 6"
+    columns:
+      - name: Column1
+        tests:
+          - not_null
+          - unique
+          - dbt_utils.at_least_one
+          - dbt_utils.not_constant
+          - dbt_utils.relationships_where:
+              to: ref('GENERIC_TWO_COLUMN_TABLE')
+              field: Column1
+              from_condition: Column2 < 400
+    

@@ -1,14 +1,23 @@
-{%- macro column_expressions(calculated_columns, alias = none) %}
-    {%- for calculated_column_dict in calculated_columns %}
-        {%- if calculated_column_dict is mapping %}            
-            {%- for calculated_column, sql_expression in calculated_column_dict.items() %}
-    {{ column_expression(sql_expression, calculated_column, alias) }}
-            {%- endfor %}
-        {%- else %}
-    {{ column_expression(calculated_column_dict, alias = alias ) }}
-        {%- endif %}
-        {%- if not loop.last %}, {% endif -%}
-    {%- endfor %}
+{%- macro column_expressions(column_definitions, alias = none) %}
+    {%- if column_definitions is mapping %}
+        {%-for column_name, sql_expression in column_definitions.items() %}
+            {%- if sql_expression %}
+                {{ pragmatic_data.column_expression(sql_expression, column_name, alias)}}
+            {%- else %}    
+                {{ pragmatic_data.column_expression(column_name, alias = alias ) }}
+            {%- endif %}
+            {%- if not loop.last %}, {% endif -%}
+        {%- endfor %}
+    {%- else %}    {#-- we have a list with column names or dictionaries with column definitions inside #}
+        {%- for col_def in column_definitions %}
+            {%- if col_def is mapping %}{# recursive call to navigate the mapping that is single or multiple columns #}
+                {{- pragmatic_data.column_expressions(col_def, alias = alias) -}}
+            {%- else %}                 {# handle the item from the list, that should be just a column name#}
+                {{ pragmatic_data.column_expression(col_def, alias = alias ) }}
+            {%- endif %}
+            {%- if not loop.last %}, {% endif -%}
+        {%- endfor %}
+    {%- endif %}
 {%- endmacro %}
 
 {% macro column_expression(sql_expression, column_name = none, alias = none) %}
