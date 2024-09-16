@@ -7,7 +7,7 @@ models:
           expression: "len(Column1) + len(Column2) = 6"
     columns:
       - name: Column1
-        tests:
+        data_tests:
           - not_null
           - unique
           - dbt_utils.at_least_one
