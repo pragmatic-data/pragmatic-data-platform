@@ -111,4 +111,4 @@ macros:
         type: list of dictionaries
         description: |
           The definition of the hashed columns to add to the model.
-          For more details see the `hashed_columns` argument under the `stage` macro.
+          For more details see the `hashed_columns` argument under the [stage](macro.pragmatic_data.stage) macro.
