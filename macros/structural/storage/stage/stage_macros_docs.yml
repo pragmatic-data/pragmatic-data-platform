@@ -27,17 +27,17 @@ macros:
           The `source` argument is optional if you are passing the `calculated_columns` argument.
 
           An example `source` argument might look like this:
-            source:
-                columns: 
-                    include_all: false  
-                    exclude_columns: 
-                      - c1 
-                      - c2
-                    replace_columns: 
-                      - c1: upper(c1)
-                    rename_columns:
-                      - renamed_c1: c1
-                where: "Column1 != 'xxx'"
+                source:
+                    columns: 
+                        include_all: false  
+                        exclude_columns: 
+                          - c1 
+                          - c2
+                        replace_columns: 
+                          - c1: upper(c1)
+                        rename_columns:
+                          - renamed_c1: c1
+                    where: "Column1 != 'xxx'"
           The columns to include are defined under the `columns` attribute, that has the following sub-attributes:
           - include_all: True or False
             True places a `*` after SELECT and enables using exclude / replace / rename lists, as shown below and in the example,
@@ -57,10 +57,10 @@ macros:
           or be used to define all the columns that we want to have in the resulting query.
 
           The following is an example of 
-            calculated_columns:
-                - COLUMN_A                    # Column left unchanged (no need to pass a value)
-                - COLUMN_1: Column1           # Column being defined by renaming another column
-                - COLUMN_2: UPPER(Column2)    # Column being defined by an SQL expression
+                calculated_columns:
+                  - COLUMN_A                    # Column left unchanged (no need to pass a value)
+                  - COLUMN_1: Column1           # Column being defined by renaming another column
+                  - COLUMN_2: UPPER(Column2)    # Column being defined by an SQL expression
 
           Each column to be returned is defined by a key:value pair rendered as "{{value}} as {{key}}",
           that is with the key representing the new column name and the optional value as its definition.
@@ -77,10 +77,10 @@ macros:
           There can be as many hashed columns as needed.
 
           The definition of a single hash column looks like the following
-            hashed_columns: 
-                - SOME_HKEY:
-                    - COLUMN_1
-                    - COLUMN_2
+              hashed_columns: 
+                  - SOME_HKEY:
+                      - COLUMN_1
+                      - COLUMN_2
           Each element of the list is a dictionary with the key (SOME_HKEY) representing the new hashed column name
           and the value being the list of the columns to be hashed (COLUMN_1 and COLUMN_2).
 
