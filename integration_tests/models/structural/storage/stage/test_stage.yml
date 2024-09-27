@@ -84,3 +84,19 @@ models:
          exclude_columns:
           - COLUMN_4     
           - EFFECTIVITY_DATE
+
+  - name: TEST_STAGE__EXTERNAL_CONFIG_LOCALLY_EXTENDED
+    config:
+      source_columns:     *stg_model_source_columns
+      source:             *stg_model_source
+      calculated_columns: *stg_model_calculated_columns
+      default_records:    *security_default_records
+      hashed_columns:     *stg_model_hashed_columns
+      remove_duplicates: 
+    data_tests:
+     - dbt_utils.equality:
+         compare_model: ref('TEST_STAGE__EXPECTED')
+         exclude_columns:
+          - COLUMN_4     
+          - EFFECTIVITY_DATE
+
