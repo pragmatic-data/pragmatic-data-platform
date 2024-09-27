@@ -29,7 +29,9 @@ src_data as (
     {%- endif %}
 
     {%- if source is mapping and source.columns.include_all and calculated_columns %},{% endif %}
-    {{- pragmatic_data.column_expressions(calculated_columns)}}
+    {% if calculated_columns %}
+        {{- pragmatic_data.column_expressions(calculated_columns)}}
+    {% endif %}        
 
     FROM {{ source_model }}
     WHERE {{ source.where or 'true' }}   
@@ -64,12 +66,14 @@ src_data as (
     UNION ALL
     SELECT * FROM default_records
 )
-    {% else %}
+
+{% else %}
 , with_default_record as(
     SELECT * FROM src_data
 )
 {% endif %}
 
+{% if hashed_columns %}
 , hashed as (
     SELECT *,
     {%- if hashed_columns is mapping %}
@@ -90,10 +94,13 @@ src_data as (
     {%- endfor %}
     FROM with_default_record
 )
-
 SELECT * FROM hashed
 
-{%- if remove_duplicates %}
+{% else %}
+SELECT * FROM with_default_record
+{% endif %}
+
+{%- if remove_duplicates and remove_duplicates['partition_by'] and remove_duplicates['order_by'] %}
 {% set qualify_function = remove_duplicates['qualify_function'] if remove_duplicates['qualify_function'] else 'row_number()' %}
 {% set qualify_value = remove_duplicates['qualify_value'] if remove_duplicates['qualify_value'] else '1' %}
 QUALIFY {{qualify_function}} OVER( 
