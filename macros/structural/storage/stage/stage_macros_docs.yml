@@ -14,13 +14,13 @@ macros:
       - name: source_model
         type: Relation or string
         description: |
-          The source to read from.
+          The source to read from.  
           It can be a dbt Relation that is expanded based on the user and environment, or 
           a string with a table name (qualified enough to work) or a CTE name from the same model.
       - name: source
         type: dictionary
         description: |
-          The definition of what columns to uses from the source and what filters to apply.
+          The definition of what columns to uses from the source and what filters to apply.  
           This is useful if most column are to be left untouched and only few need renaming or replacement, 
           while when many columns need changes it is easier and clearer to redefine all columns by including 
           them all in the `calculated_columns` argument.
@@ -41,7 +41,7 @@ macros:
                     where: "Column1 != 'xxx'"
           ```
           The columns to include are defined under the `columns` attribute, that has the following sub-attributes:
-          - include_all: True or False
+          - include_all: True or False.  
             True places a `*` after SELECT and enables using exclude / replace / rename lists, as shown below and in the example,
             while False does not include any source column and the exclude / replace / rename lists are not used.
             False is the common choice when we use the `calculated_columns` argument to define all the column that we want.
@@ -54,8 +54,9 @@ macros:
       - name: calculated_columns
         type: list of dictionaries
         description: |
-          The definition of manually defined columns.
-          This can complement the `source` argument by adding newly created columns to the ones from the source 
+          The definition of manually defined columns.  
+          
+          The `calculated_columns` can complement the `source` argument by adding newly created columns to the ones from the source 
           or be used to define all the columns that we want to have in the resulting query.
 
           The following is an example of calculated_columns:
@@ -76,21 +77,23 @@ macros:
       - name: hashed_columns
         type: list of dictionaries
         description: |
-          The definition of the hashed columns to add to the model.
+          The definition of the hashed columns to add to the model.  
           There can be as many hashed columns as needed.
 
           The definition of a single hash column looks like the following
+          ```
                   hashed_columns: 
                     - SOME_HKEY:
                       - COLUMN_1
                       - COLUMN_2
+          ```
           Each element of the list is a dictionary with the key (SOME_HKEY) representing the new hashed column name
           and the value being the list of the columns to be hashed (COLUMN_1 and COLUMN_2).
 
       - name: default_records
         type: list of dictionaries
         description: |
-          The definition of one or more default records.
+          The definition of one or more default records.  
           Each default record is defined by a top level entry in the list in form of a dictionary.
           The key of the dictionary represents the name of the default record, 
           while the value must be a list of dictionaries defining ONLY the desired colums in the same format 
