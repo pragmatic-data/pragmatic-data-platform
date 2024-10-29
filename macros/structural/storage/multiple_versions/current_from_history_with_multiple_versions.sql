@@ -14,7 +14,7 @@
     , count(*) OVER( PARTITION BY {{key_column}}, {{load_ts_column}}) as cnt
 {%- endset -%}
 
-{{current_from_history(
+{{ pragmatic_data.current_from_history(
     history_rel = history_rel, 
     key_column = key_column,
     selection_expr = multiple_versions_selection_expression,
