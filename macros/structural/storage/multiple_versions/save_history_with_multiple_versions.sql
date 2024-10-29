@@ -23,7 +23,7 @@ WITH
 {% if is_incremental() or incremental_w_external_input %}
 
 current_from_history as (
-    {{current_from_history_with_multiple_versions(
+    {{ pragmatic_data.current_from_history_with_multiple_versions(
         history_rel = history_rel, 
         key_column = key_column,
         sort_expr = sort_expr,
