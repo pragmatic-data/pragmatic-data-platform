@@ -30,12 +30,12 @@ Table of Contents
 
 #### Stage ([source](macros/structural/storage/stage/stage.sql)) ([docs](macros/structural/storage/stage/stage_macros_docs.yml))
 
-The macro to build a STAGE model (defualt prefix STG) from metadata passed as YAML.
+The macro to build a STAGE model (default prefix STG) from metadata passed as YAML.
 
 **Usage with local YAML definition:**  
 
 The simplest usage is by having the metadata definitions in YAML in the model itself.
-```sql
+```text
 {%- set local_yaml_config -%}
   ... <YAML definition of the parameters>
 {%- endset -%}
@@ -43,7 +43,7 @@ The simplest usage is by having the metadata definitions in YAML in the model it
 {%- set metadata_dict = fromyaml(local_yaml_config) -%}
 ```
 The YAML is parsed, converted into a Python dictionary and its top levels passed to the macro. 
-```sql
+```text
 {{- pragmatic_data.stage(
     source_model            = ref('GENERIC_TWO_COLUMN_TABLE'),
     source                  = metadata_dict['source'],
@@ -71,7 +71,7 @@ The YAML config must be under the `config`attribute of the model containing the 
 
 ```
 The above config is used in the model named `YOUR_STAGE_MODEL` as shown below:
-```sql
+```text
 {{ pragmatic_data.stage(
     source_model            = ref('GENERIC_TWO_COLUMN_TABLE'),
     source                  = config.require('source'),
@@ -92,6 +92,7 @@ The above config is used in the model named `YOUR_STAGE_MODEL` as shown below:
 
 
 ###   Copyright 2022-2024 Roberto Zagni
+   All right reserved.
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -99,8 +100,12 @@ The above config is used in the model named `YOUR_STAGE_MODEL` as shown below:
 
        http://www.apache.org/licenses/LICENSE-2.0
 
-   Unless required by applicable law or agreed to in writing, software
+   Unless agreed to in writing, software
    distributed under the License is distributed on an "AS IS" BASIS,
    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
    See the License for the specific language governing permissions and
-   limitations under the License.
+   limitations under the License.  
+
+   If you are unable to accept the above terms, you may not use this 
+   file and any content of this repository, and you must not keep any copy 
+   of the content of this repository.
