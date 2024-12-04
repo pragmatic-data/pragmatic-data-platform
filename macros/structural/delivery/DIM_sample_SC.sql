@@ -1,6 +1,6 @@
 {{ config(alias='DIM_SECURITY_INFO') }}
 
-{{ self_completing_dimension(
+{{ pragmatic_data.self_completing_dimension(
     dim_rel = ref('REF_SECURITY_INFO_ABC_BANK'),
     dim_key_column  = 'SECURITY_CODE',
     dim_default_key_value = '-1',

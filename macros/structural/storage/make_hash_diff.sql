@@ -7,7 +7,7 @@
 
         {%- if col_list|length > 0 %}
             {{ log('HASH DIFF col_list = ' ~ col_list, true) }}
-            {{ dbt_utils.surrogate_key(col_list) }}
+            {{ pragmatic_data.pdp_hash(col_list) }}
         {%- else %}
             {% do exceptions.raise_compiler_error("Relation does not exist yet, no columns. HDIFF not calculated.") %}
         {%- endif %}

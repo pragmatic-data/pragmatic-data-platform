@@ -33,7 +33,7 @@ WITH
 
 {% if is_incremental() %}-- in an incremental run and the dest table already exists
 current_from_history as (
-    {{- current_from_history(
+    {{- pragmatic_data.current_from_history(
         history_rel = this,
         key_column = key_column,
         load_ts_column = load_ts_column,
