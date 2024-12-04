@@ -13,17 +13,17 @@ SELECT
         EXCLUDE( {{ base_table_dict['exclude_column_list'] | join(', ') }} ){%- endif -%}
     {%- if base_table_dict['include_all_columns'] and base_table_dict['columns'] %},{% endif %}
 
-    {{- column_expressions(base_table_dict['columns'], 'bt') }}
+    {{- pragmatic_data.column_expressions(base_table_dict['columns'], 'bt') }}
     {%- if base_table_dict['columns'] %}, {% endif -%}
 
     {%- for joined_table_name in joined_tables_dict %}
     {%- set alias = 't'~loop.index %}
-    {{ column_expressions(joined_tables_dict[joined_table_name]['columns'], alias ) }}
+    {{ pragmatic_data.column_expressions(joined_tables_dict[joined_table_name]['columns'], alias ) }}
     {%- if not loop.last %}, {% endif -%}
     {%- endfor -%}
 
     {%- if calculated_columns %}, 
-    {{ column_expressions(calculated_columns) }}
+    {{ pragmatic_data.column_expressions(calculated_columns) }}
     {%- endif %}
 
 FROM {{ base_table_dict['name'] }} as bt
