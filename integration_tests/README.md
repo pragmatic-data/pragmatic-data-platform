@@ -1,13 +1,26 @@
+# Integration Tests for PDP macros
 This is the Integration Test dbt project for the Pragmatic Data Platform macro library!
 
 ### Using this Integration Test project
 
 1. configure the project to connect to the desired Snowflake account and DB
+1. build the project with `dbt build`
 
+###   Copyright 2022-2024 Roberto Zagni
+   All right reserved.
 
-### Resources:
-- Learn more about dbt [in the docs](https://docs.getdbt.com/docs/introduction)
-- Check out [Discourse](https://discourse.getdbt.com/) for commonly asked questions and answers
-- Join the [dbt community](https://getdbt.com/community) to learn from other analytics engineers
-- Find [dbt events](https://events.getdbt.com) near you
-- Check out [the blog](https://blog.getdbt.com/) for the latest news on dbt's development and best practices
+   Licensed under the Apache License, Version 2.0 (the "License");
+   you may not use this file except in compliance with the License.
+   You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.  
+
+   If you are unable to accept the above terms, you may not use this 
+   file and any content of this repository, and you must not keep any copy 
+   of the content of this repository.
