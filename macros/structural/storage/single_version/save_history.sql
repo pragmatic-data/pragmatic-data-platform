@@ -9,6 +9,7 @@
     input_filter_expr       = 'true',
     history_filter_expr     = 'true',
     order_by_expr           = none,
+    has_mutable_entities    = true,
     history_rel = this
 ) -%}
 
@@ -22,6 +23,7 @@
 WITH
 {%- if is_incremental() or ext_input %}
 current_from_history as (
+    {%- if has_mutable_entities %}
     {{ pragmatic_data.current_from_history(
         history_rel = history_rel, 
         key_column = key_column,
@@ -29,6 +31,11 @@ current_from_history as (
         load_ts_column = load_ts_column,
         history_filter_expr = history_filter_expr
     ) }}
+    {%- else %}
+        SELECT {{diff_column}}
+        FROM {{history_rel}}
+        WHERE {{history_filter_expr}}
+    {%- endif %}
 ),
 
 load_from_input as (
