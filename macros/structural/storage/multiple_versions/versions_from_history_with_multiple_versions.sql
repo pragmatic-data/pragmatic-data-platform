@@ -21,7 +21,7 @@ SELECT {{selection_expr}}
     , row_number() OVER( PARTITION BY {{key_column}} ORDER BY {{version_sort_expr}}) as version_number
     , dense_rank() OVER( PARTITION BY {{key_column}} ORDER BY {{ingest_sort_expr}}) as ingestion_batch
     , dense_rank() OVER( PARTITION BY {{key_column}} ORDER BY {{hist_load_sort_expr}}) as load_batch
-    , {{pdp_hash([diff_column, version_sort_column])}} as DIM_SCD_HKEY
+    , {{ pragmatic_data.pdp_hash([diff_column, version_sort_column]) }} as DIM_SCD_HKEY
     , {{ version_sort_column }} as VALID_FROM
     , coalesce( LEAD({{ version_sort_column }}) OVER(PARTITION BY {{key_column}} ORDER BY {{version_sort_expr}})
                , '{{end_of_time}}'::{{end_of_time_type}}

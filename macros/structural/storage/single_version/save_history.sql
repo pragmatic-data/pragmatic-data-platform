@@ -22,7 +22,7 @@
 WITH
 {%- if is_incremental() or ext_input %}
 current_from_history as (
-    {{current_from_history(
+    {{ pragmatic_data.current_from_history(
         history_rel = history_rel, 
         key_column = key_column,
         selection_expr = diff_column,

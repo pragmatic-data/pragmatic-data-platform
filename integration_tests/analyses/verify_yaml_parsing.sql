@@ -34,9 +34,9 @@ Y_calcl_cols:
     {%- if calculated_columns is mapping %}
         {% for column_name, sql_expression in calculated_columns.items() %}
             {% if sql_expression %}
-                {{ column_expression(sql_expression, column_name, alias) }}
+                {{ pragmatic_data.column_expression(sql_expression, column_name, alias) }}
             {%- else %}    
-                {{ column_expression(column_name, alias = alias ) }}            
+                {{ pragmatic_data.column_expression(column_name, alias = alias ) }}
             {% endif %}
             {%- if not loop.last %}, {% endif -%}
         {% endfor %}
@@ -44,10 +44,10 @@ Y_calcl_cols:
     {%- for col_def in calculated_columns %}
         {%- if col_def is mapping %}            
             {%- for column_name, sql_expression in col_def.items() %}
-                {{ column_expression(sql_expression, column_name, alias) }}
+                {{ pragmatic_data.column_expression(sql_expression, column_name, alias) }}
             {%- endfor %}
         {%- else %}
-            {{ column_expression(col_def, alias = alias ) }}
+            {{ pragmatic_data.column_expression(col_def, alias = alias ) }}
         {%- endif %}
         {%- if not loop.last %}, {% endif -%}
     {%- endfor %}
