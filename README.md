@@ -33,6 +33,35 @@ For more options and full info, please [read the dbt docs](https://docs.getdbt.c
 ## Ingestion and extraction layer
 
 ## Storage layer
+The storage layer is used to create an immutable history of the incoming data in the most usable format, 
+without altering the semantic of the received data.  
+
+This is usually achieved by the collaboration of a staging (STG) view and an history (HIST) table.
+
+The staging models are used to adapt the incoming data by:
+* providing good column names, 
+* filtering out headers and other not-data rows
+* making the data usable (e.g. parsing text into dates, timestamps and numbers, converting timezones, ...), 
+* extracting desired columns from nested structures
+* calculating handy derived columns (like IS_DELETED or FILE_TYPE) to incapsulate export specific logic
+* adding default values for dimension like inputs
+* calculating HashKeys for Primary Keys and Foreign Keys of relevant Business Concepts
+* filter out older versions if we want to just store the latest version for each run
+* identify or calculate the EFECTIVE_DATE (or EFECTIVE_TS) from the input payload
+* eventually filter the input to reduce the load effort
+
+The history models are used to:
+* store the new versions received from the STG model.  
+  One option is to store all the new versions, even multiple changes per run, creating a fully auditable history of changes;
+  another option is to store only one version (the most recent) at each run, reducing the load time and storage footprint.
+* recognize and mark as deleted the rows deleted in the source system.  
+  To be able to recognize deletions we need either a full export in the STG (hard for bigger table as facts)
+  or a separate list of deleted keys (friendlyer for bigger tables). Note that we can also calculate the list 
+  of deleted entities ourselves with a full export containing only the columns of the key.
+
+Please note that if we configure the change data capture of our source to add a status column to the export,
+we can use the normal history to track the changes as the status column tells us when a row is deleted 
+and when it changes it also produces a new version, that we record and we can contestually mark as deleted.
 
 ### Staging models
 
