@@ -18,6 +18,6 @@
   {%- set _ = dates.append( (base_date-time_delta).strftime('%Y/%m/%d') ) -%}
 {% endfor -%}
     
-{{file_path_prefix}/({{dates|join('|')}})/.*{{table_name}}.*{{file_path_suffix}}
+{{file_path_prefix}}/({{dates|join('|')}})/.*{{table_name}}.*{{file_path_suffix}}
 
 {%- endmacro %}

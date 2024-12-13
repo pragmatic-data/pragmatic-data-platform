@@ -1,11 +1,11 @@
-{%  macro ingestion_setup_sql(cfg) %}
+{%  macro inout_setup_sql(cfg) %}
 
-{%- set db = cfg.landing.database or target.database %}
-    {%- set schema = cfg.landing.schema or (target.schema ~ '_LANDING') %}
+{%- set db = cfg.inout.database or target.database %}
+{%- set schema = cfg.inout.schema or (target.schema ~ '_LANDING') %}
 
 -- 1. Creation of the schema for the Landing Tables
 CREATE SCHEMA IF NOT EXISTS {{ db }}.{{ schema }}
-COMMENT = {{ cfg.landing.comment or 'Schema for Landing Tables.'}};
+COMMENT = {{ cfg.inout.comment or 'Schema for Landing Tables.'}};
 
 
 -- 2. Creation of the File Format to read the files for the Landing Tables
@@ -35,3 +35,16 @@ CREATE STAGE IF NOT EXISTS {{ db }}.{{ schema }}.{{ cfg.stage.name }}
 {%- endif %}
 
 {%- endmacro %}
+
+{% macro create_file_format(file_format) %}
+{%- if file_format and file_format.definition %}
+CREATE FILE FORMAT IF NOT EXISTS {{ db }}.{{ schema }}.{{ cfg.file_format.name }}
+    {%- for option, value in cfg.file_format.definition.items() %}
+    {{option}} = {{value}}
+    {%- endfor %}
+;
+{%- else %}
+-- FILE FORMAT or its definition not specified in the Config object provided
+{%- endif %}
+
+{% endmacro %}
