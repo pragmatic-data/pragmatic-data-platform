@@ -32,31 +32,33 @@
     {% if only_one_export and pragmatic_data.check_dummy_exists(stage_name, export_path) %}
         {{ print('***** dummy file found in '~ stage_with_export_path) }}
         {{ print('***** not doing the export again.') }}
-        {{ return(false) }}
+        {% do return(false) %}
     {% endif %}
 
-    {% if remove_folder_before_export %}
+    {% if remove_folder_before_export and execute %}
         {{ print('* Removing folder ' ~ stage_with_export_path) }}
         {% set results = run_query('REMOVE @' ~ stage_with_export_path) %}
         {{ log('*** Status - Removed: ' ~ results.columns[0].values() | length ~ ' files.', info=True) }}
     {% endif %}
 
-    {{ log('* Exporting data to stage from table ' ~ table_ref ~ '.', true) }}
-    {% set results = run_query(pragmatic_data.export_to_stage_sql(
-        table_name          = table_ref, 
-        stage_with_path     = stage_with_export_path ~ export_file_name_prefix, 
-        format_name         = format_name
-    ) ) %}
-    {{ log('*** Exported data to stage from table ' ~ table_ref ~ '.', true) }}
-    {{ log_export_results(results) }}
+    {% if execute %}        
+        {{ log('* Exporting data to stage from table ' ~ table_ref ~ '.', true) }}
+        {% set results = run_query(pragmatic_data.export_to_stage_sql(
+            table_name          = table_ref, 
+            stage_with_path     = stage_with_export_path ~ export_file_name_prefix, 
+            format_name         = format_name
+        ) ) %}
+        {{ log('*** Exported data to stage from table ' ~ table_ref ~ '.', true) }}
+        {{ log_export_results(results) }}
+    {% endif %}
 
-    {% if create_dummy_file %}
-        {% set results = run_query(pragmatic_data.export_dummy_file(stage_with_export_path)) %}
+    {% if create_dummy_file and execute %}
+        {% set results = run_query(pragmatic_data.export_dummy_file_sql(stage_with_export_path)) %}
         {{ print('*** Dummy file exported as : ' ~ pragmatic_data.get_dummy_base_name(stage_with_export_path) ~ '...') }}
     {% endif %}
 
     {{ print('***** DONE Extraction of Table ' ~ table_ref) }}
-    {{ return(true) }}
+    {% do return(true) %}
 {%- endmacro %}
 
 {% macro log_export_results(results) %}

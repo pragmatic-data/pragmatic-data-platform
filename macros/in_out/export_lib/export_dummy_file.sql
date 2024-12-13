@@ -1,4 +1,4 @@
-{% macro export_dummy_file(stage_with_path) %}
+{% macro export_dummy_file_sql(stage_with_path) %}
 BEGIN TRANSACTION;
 
 COPY INTO @{{ pragmatic_data.get_dummy_base_name(stage_with_path) }}
@@ -14,9 +14,9 @@ COMMIT;
 {%- endmacro %}
 
 {% macro get_dummy_file_name_prefix() %}
-    {{ return('dummy') }}
+    {% do return('dummy') %}
 {% endmacro %}
 
 {% macro get_dummy_base_name(stage_with_path) %}
-    {{ return( stage_with_path ~ pragmatic_data.get_dummy_file_name_prefix()) }}
+    {% do return( stage_with_path ~ pragmatic_data.get_dummy_file_name_prefix()) %}
 {% endmacro %}
