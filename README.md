@@ -7,12 +7,20 @@ as described in my books: "Data Engineering with dbt" and
 "Building A Pragmatic Data Platform with dbt and Snowflake".
 
 ## Installation instructions
-Please [read the dbt docs](https://docs.getdbt.com/docs/build/packages) on how to install packages.
+Adding the follwing lines to your `packages.yml` or `dependencies.yml` file should do the trick:
+```
+packages:
+  # Pragmatic Data Platform package
+  - git: "https://github.com/RobMcZag/pragmatic-data-platform.git"
+    revision: v0.2.0    # Update to the version you want
+```
+
+For more options and full info, please [read the dbt docs](https://docs.getdbt.com/docs/build/packages) on how to install packages.
 
 ----
-Table of Contents
+## Table of Contents
 * [Installation instructions](#installation-instructions)
-* [Ingestion layer](#ingestion-layer)
+* [Ingestion and extraction layer](#ingestion-and-extraction-layer)
 * [Storage layer](#storage-layer)
   * [Staging models](#staging-models)
   * [History models - Single version per load](#history-models---single-version-per-load) 
@@ -22,7 +30,7 @@ Table of Contents
 
 ----
 
-## Ingestion layer
+## Ingestion and extraction layer
 
 ## Storage layer
 
