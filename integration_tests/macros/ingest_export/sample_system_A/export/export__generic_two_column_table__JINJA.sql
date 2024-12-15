@@ -5,7 +5,7 @@
  * export_path_date_part    the date partitioning of the export path            - default is current date with '_' in place of '-'
  * export_file_name_prefix  the first part of the name of the exported files    - default is source table name plus '__'
  */
-{%  macro export__generic_two_column_table(
+{%  macro export__generic_two_column_table__JINJA(
         table_ref                   = ref('GENERIC_TWO_COLUMN_TABLE'),
         export_path_base            = 'SYSTEM_A/generic/',
 
