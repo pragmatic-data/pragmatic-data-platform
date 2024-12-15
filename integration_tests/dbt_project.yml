@@ -32,3 +32,7 @@ seeds:
       +schema: INPUTS
     expected:
       +schema: EXPECTED
+
+# Variables
+vars:
+  'dbt_date:time_zone': 'America/Los_Angeles'
