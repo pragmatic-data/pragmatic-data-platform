@@ -1,6 +1,9 @@
 -- ingest_semi_structured_into_landing_sql
 
 {% macro ingest_semi_structured_into_landing_sql(full_table_name, field_definitions, file_pattern, full_stage_name, full_format_name) %}
+
+{{ pragmatic_data.refresh_stage_sql(full_stage_name) }}
+
 BEGIN TRANSACTION;
 
 COPY INTO {{ full_table_name }}

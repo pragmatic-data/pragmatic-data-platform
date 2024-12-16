@@ -5,3 +5,4 @@
 {%- do pragmatic_data.run_refresh_stage(stage_name) %}
 
 SELECT * FROM DIRECTORY( @{{ stage_name }} )
+ORDER BY LAST_MODIFIED

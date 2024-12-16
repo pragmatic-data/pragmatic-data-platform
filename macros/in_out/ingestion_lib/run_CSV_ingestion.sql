@@ -3,7 +3,8 @@
     ingestion_dict,
     recreate_table = false
 ) %}
-
+{% if execute %}
+    
 {% set full_table_name = landing_table_dict.db_name 
                  ~ '.' ~ landing_table_dict.schema_name 
                  ~ '.' ~ landing_table_dict.table_name %}
@@ -39,6 +40,7 @@ Status: {{ results.columns[0].values()[0]  }}
 {{ log(' *** ' ~ ingestion_result_str , info=True) }}
 {{ log('DONE ingestion into Landing Table ' ~ full_table_name , info=True) }}
 
+{% endif %}
 {% endmacro %}
 
 /* 
