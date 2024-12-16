@@ -12,7 +12,7 @@
 {{ log('Starting ingestion into Landing Table ' ~ full_table_name , info=True) }}
 {{ log(' Creating Landing Table ' ~ full_table_name , info=True) }}
 {% set results = run_query(
-    create_landing_table_sql(
+    pragmatic_data.create_landing_table_sql(
         landing_table_dict = landing_table_dict,
         recreate_table = recreate_table    
 ) ) %}
@@ -20,7 +20,7 @@
 
 {{ log(' Ingesting data into Landing Table ' ~ full_table_name , info=True) }}
 {% set results = run_query(
-    ingest_into_landing_sql(
+    pragmatic_data.ingest_into_landing_sql(
         full_table_name     = full_table_name, 
         field_count         = field_count, 
         file_pattern        = ingestion_dict.pattern, 
