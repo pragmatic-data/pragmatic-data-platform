@@ -1,50 +1,87 @@
 {%  macro inout_setup_sql(cfg) %}
 
-{%- set db = cfg.inout.database or target.database %}
-{%- set schema = cfg.inout.schema or (target.schema ~ '_LANDING') %}
-
 -- 1. Creation of the schema for the Landing Tables
-CREATE SCHEMA IF NOT EXISTS {{ db }}.{{ schema }}
+CREATE SCHEMA IF NOT EXISTS {{ pragmatic_data.get_inout_db(cfg.inout) }}.{{ pragmatic_data.get_inout_schema(cfg.inout) }}
 COMMENT = {{ cfg.inout.comment or 'Schema for Landing Tables.'}};
 
 
 -- 2. Creation of the File Format to read the files for the Landing Tables
-{%- if cfg.file_format and cfg.file_format.definition %}
-CREATE FILE FORMAT IF NOT EXISTS {{ db }}.{{ schema }}.{{ cfg.file_format.name }}
-    {%- for option, value in cfg.file_format.definition.items() %}
-    {{option}} = {{value}}
-    {%- endfor %}
-;
-{%- else %}
--- FILE FORMAT or its definition not specified in the Config object provided
-{%- endif %}
+{{ pragmatic_data.create_file_format(cfg.file_format, cfg.inout) }}
 
 -- 3. Creation of the Stage holding the files for the Landing Tables
-{%- if cfg.stage and cfg.stage.definition %}
-CREATE STAGE IF NOT EXISTS {{ db }}.{{ schema }}.{{ cfg.stage.name }}
-    {%- if 'FILE_FORMAT' not in cfg.stage.definition or not cfg.stage.definition['FILE_FORMAT'] %}
-    FILE_FORMAT = {{ db }}.{{ schema }}.{{ cfg.file_format.name }}
-    {%- do cfg.stage.definition.pop('FILE_FORMAT', None) %}
-    {%- endif %}
-    {%- for option, value in cfg.stage.definition.items() %}
-    {{option}} = {{value}}
-    {%- endfor %}
-;
-{%- else %}
--- STAGE or its definition not specified in the Config object provided
-{%- endif %}
+{{ pragmatic_data.create_stage(cfg.stage, cfg.file_format, cfg.inout) }}
 
 {%- endmacro %}
 
-{% macro create_file_format(file_format) %}
-{%- if file_format and file_format.definition %}
-CREATE FILE FORMAT IF NOT EXISTS {{ db }}.{{ schema }}.{{ cfg.file_format.name }}
-    {%- for option, value in cfg.file_format.definition.items() %}
-    {{option}} = {{value}}
-    {%- endfor %}
-;
-{%- else %}
--- FILE FORMAT or its definition not specified in the Config object provided
-{%- endif %}
+
+{% macro get_inout_db(inout = none) %}
+    {% do return(inout.database or target.database) %}
+{% endmacro %}
+
+{% macro get_inout_schema(inout = none) %}
+    {% do return(inout.schema or (target.schema ~ '_LANDING')) %}
+{% endmacro %}
+
+{% macro get_inout_fq_schema(inout = none) %}
+    {% do return(pragmatic_data.get_inout_db(inout) ~'.'~ pragmatic_data.get_inout_schema(inout)) %}
+{% endmacro %}
+
+{% macro get_inout_fq_file_format_name(file_format_name, inout = none) %}
+    {% set file_format_name = file_format_name or (target.schema ~ '_FF') %}
+    {% if '.' in file_format_name %}
+        {% do return(file_format_name ) %}
+    {% else %}
+        {% do return( pragmatic_data.get_inout_fq_schema(inout) ~'.'~ file_format_name ) %}
+    {% endif %}
+{% endmacro %}
+
+{% macro get_inout_fq_stage_name(stage_name, inout = none) %}
+    {% set stage_name = stage_name or (target.schema ~ '_STAGE') %}
+    {% do return( pragmatic_data.get_inout_fq_schema(inout) ~'.'~ stage_name ) %}
+{% endmacro %}
+
+
+{% macro create_file_format(file_format, inout = none) %}
+
+    {%- if file_format and file_format.definition %}
+        {% set fq_file_format_name = file_format.fq_name or pragmatic_data.get_inout_fq_file_format_name(file_format.name, inout) %}
+
+        CREATE FILE FORMAT IF NOT EXISTS {{ fq_file_format_name }}
+            {%- for option, value in file_format.definition.items() %}
+            {{option}} = {{value}}
+            {%- endfor %}
+        ;
+    {%- else %}
+        -- FILE FORMAT or its definition not specified in the Config object provided
+        {{ exceptions.raise_compiler_error("Missing or invalid file format configuration. Got: " ~ file_format | pprint) }}
+    {%- endif %}
+
+{% endmacro %}
+
+{% macro create_stage(stage, file_format = none, inout = none) %}
+
+    {%- if stage and stage.definition %}
+        {%- set fq_stage_name = stage.fq_name or pragmatic_data.get_inout_fq_stage_name(stage.name, inout) %}
+
+        {%- set stage_file_format = stage.definition.FILE_FORMAT or stage.definition['FILE_FORMAT'] %}
+        {%- if stage_file_format %}
+            {%- set stage_fq_file_format = stage_file_format if '.' in stage_file_format 
+                                                            else pragmatic_data.get_inout_fq_file_format_name(stage_file_format, inout)  %}
+            {%- do stage.definition.update({'FILE_FORMAT': stage_fq_file_format}) %}
+        {%- elif file_format %}
+            {%- do stage.definition.update({'FILE_FORMAT': file_format.fq_name or pragmatic_data.get_inout_fq_file_format_name(file_format.name, inout)}) %}
+        {%- else %}
+            {%- do stage.definition.pop('FILE_FORMAT', None) %} {# handle when only the empty key and no file_format param is provided #}
+        {%- endif %}
+
+        CREATE STAGE IF NOT EXISTS {{ fq_stage_name }}
+            {%- for option, value in stage.definition.items() %}
+            {{option}} = {{value}}
+            {%- endfor %}
+        ;
+    {%- else %}
+        -- STAGE or its definition not specified in the Config object provided
+        {{ exceptions.raise_compiler_error("Missing or invalid stage configuration. Got: " ~ stage | pprint) }}
+    {%- endif %}
 
 {% endmacro %}
