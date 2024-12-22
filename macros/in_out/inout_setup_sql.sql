@@ -37,7 +37,11 @@ COMMENT = {{ cfg.inout.comment or 'Schema for Landing Tables.'}};
 
 {% macro get_inout_fq_stage_name(stage_name, inout = none) %}
     {% set stage_name = stage_name or (target.schema ~ '_STAGE') %}
-    {% do return( pragmatic_data.get_inout_fq_schema(inout) ~'.'~ stage_name ) %}
+    {% if '.' in stage_name %}
+        {% do return(stage_name ) %}
+    {% else %}
+        {% do return( pragmatic_data.get_inout_fq_schema(inout) ~'.'~ stage_name ) %}
+    {% endif %}
 {% endmacro %}
 
 
