@@ -9,3 +9,12 @@ models:
           expression: "UPPER(actual_schema) = UPPER(expected_schema)"
       - dbt_utils.expression_is_true:
           expression: "UPPER(actual_fq_schema) = UPPER(expected_fq_schema)"
+
+  - name: TEST_INOUT_SETUP__FILE_FORMAT
+    data_tests:
+      - dbt_utils.expression_is_true:
+          expression: "UPPER(actual_fq_FF_name) = UPPER(expected_fq_FF_name)"
+      - dbt_utils.expression_is_true:
+          expression: "CONTAINS(UPPER(actual_file_format), UPPER(expected_file_format__type))"
+      - dbt_utils.expression_is_true:
+          expression: "CONTAINS(UPPER(actual_file_format), UPPER(expected_file_format__skip_header))"

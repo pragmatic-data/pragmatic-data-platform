@@ -41,21 +41,20 @@ COMMENT = {{ cfg.inout.comment or 'Schema for Landing Tables.'}};
 {% endmacro %}
 
 
-{% macro create_file_format(file_format, inout = none) %}
-
+{% macro create_file_format(file_format, inout = none) -%}
     {%- if file_format and file_format.definition %}
-        {% set fq_file_format_name = file_format.fq_name or pragmatic_data.get_inout_fq_file_format_name(file_format.name, inout) %}
-
-        CREATE FILE FORMAT IF NOT EXISTS {{ fq_file_format_name }}
-            {%- for option, value in file_format.definition.items() %}
-            {{option}} = {{value}}
-            {%- endfor %}
-        ;
+        {%- set fq_file_format_name = file_format.fq_name or pragmatic_data.get_inout_fq_file_format_name(file_format.name, inout) %}
+CREATE FILE FORMAT IF NOT EXISTS {{ fq_file_format_name }}
+        {%- for option, value in file_format.definition.items() %}
+            {%- if option and value %}
+    {{option}} = {{value}}        
+            {%- endif %}
+        {%- endfor %}
+;
     {%- else %}
         -- FILE FORMAT or its definition not specified in the Config object provided
         {{ exceptions.raise_compiler_error("Missing or invalid file format configuration. Got: " ~ file_format | pprint) }}
     {%- endif %}
-
 {% endmacro %}
 
 {% macro create_stage(stage, file_format = none, inout = none) %}
@@ -70,15 +69,14 @@ COMMENT = {{ cfg.inout.comment or 'Schema for Landing Tables.'}};
             {%- do stage.definition.update({'FILE_FORMAT': stage_fq_file_format}) %}
         {%- elif file_format %}
             {%- do stage.definition.update({'FILE_FORMAT': file_format.fq_name or pragmatic_data.get_inout_fq_file_format_name(file_format.name, inout)}) %}
-        {%- else %}
-            {%- do stage.definition.pop('FILE_FORMAT', None) %} {# handle when only the empty key and no file_format param is provided #}
         {%- endif %}
-
-        CREATE STAGE IF NOT EXISTS {{ fq_stage_name }}
-            {%- for option, value in stage.definition.items() %}
-            {{option}} = {{value}}
-            {%- endfor %}
-        ;
+CREATE STAGE IF NOT EXISTS {{ fq_stage_name }}
+        {%- for option, value in stage.definition.items() %}
+            {%- if option and value %}
+        {{option}} = {{value}}        
+            {%- endif %}
+        {%- endfor %}
+;
     {%- else %}
         -- STAGE or its definition not specified in the Config object provided
         {{ exceptions.raise_compiler_error("Missing or invalid stage configuration. Got: " ~ stage | pprint) }}
