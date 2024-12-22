@@ -1,9 +1,8 @@
 {%  macro inout_setup_sql(cfg) %}
 
 -- 1. Creation of the schema for the Landing Tables
-CREATE SCHEMA IF NOT EXISTS {{ pragmatic_data.get_inout_db(cfg.inout) }}.{{ pragmatic_data.get_inout_schema(cfg.inout) }}
+CREATE SCHEMA IF NOT EXISTS {{ pragmatic_data.get_inout_fq_schema(cfg.inout) }}
 COMMENT = {{ cfg.inout.comment or 'Schema for Landing Tables.'}};
-
 
 -- 2. Creation of the File Format to read the files for the Landing Tables
 {{ pragmatic_data.create_file_format(cfg.file_format, cfg.inout) }}
@@ -60,6 +59,7 @@ CREATE FILE FORMAT IF NOT EXISTS {{ fq_file_format_name }}
         {{ exceptions.raise_compiler_error("Missing or invalid file format configuration. Got: " ~ file_format | pprint) }}
     {%- endif %}
 {% endmacro %}
+
 
 {% macro create_stage(stage, file_format = none, inout = none) %}
 
