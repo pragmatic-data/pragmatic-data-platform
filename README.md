@@ -7,7 +7,23 @@ as described in my books: "Data Engineering with dbt" and
 "Building A Pragmatic Data Platform with dbt and Snowflake".
 
 ## Installation instructions
-Please [read the dbt docs](https://docs.getdbt.com/docs/build/packages) on how to install packages.
+TL;DR add the following into your `packages.yml` or `dependencies.yml` file 
+to pin to a specific version (suggested):
+```
+  # Pragmatic Data Platform package
+  - git: https://github.com/RobMcZag/pragmatic-data-platform.git
+    revision: v0.2.0
+```
+
+or the following to stay on the latest, unexpected and unpredictable changes released to 'main' or any other branch you pick:
+```
+  # Pragmatic Data Platform package
+  - git: https://github.com/RobMcZag/pragmatic-data-platform.git
+    revision: main
+    warn-unpinned: false
+```
+
+For the full explanation, please [read the dbt docs](https://docs.getdbt.com/docs/build/packages) on how to install packages.
 
 ----
 Table of Contents
