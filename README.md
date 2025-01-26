@@ -107,7 +107,7 @@ The above config is used in the model named `YOUR_STAGE_MODEL` as shown below:
 ## Delivery layer
 
 
-###   Copyright 2022-2024 Roberto Zagni
+###   Copyright 2022-2025 Roberto Zagni
    All right reserved.
 
    Licensed under the Apache License, Version 2.0 (the "License");
