@@ -6,7 +6,7 @@ in your dbt projects to help you build a pragmatic data platform
 as described in my books: "Data Engineering with dbt" and
 "Building A Pragmatic Data Platform with dbt and Snowflake".
 
-## Installation instructions
+## Installation
 TL;DR add the following into your `packages.yml` or `dependencies.yml` file 
 to pin to a specific version (suggested):
 ```
@@ -23,7 +23,7 @@ or the following to stay on the latest, unexpected and unpredictable changes rel
     warn-unpinned: false
 ```
 
-For the full explanation, please [read the dbt docs](https://docs.getdbt.com/docs/build/packages) on how to install packages.
+For the full explanation on how to install packages, please [read the dbt docs](https://docs.getdbt.com/docs/build/packages).
 
 ----
 Table of Contents
@@ -39,6 +39,7 @@ Table of Contents
 ----
 
 ## Ingestion layer
+Macros are [there](macros/ingestion_lib), docs are "coming soon..." :)
 
 ## Storage layer
 
@@ -99,12 +100,19 @@ The above config is used in the model named `YOUR_STAGE_MODEL` as shown below:
 ```
 
 ### History models - Single version per load
+Macros are [there](macros/structural/storage/single_version), docs are "coming soon..." :)
 
 ### History models - Multiple versions per load
+Macros are [there](macros/structural/storage/multiple_versions), docs are "coming soon..." :)
 
 ## Refined layer
+Macros are [there](macros/structural/refined), docs are "coming soon..." :)
 
 ## Delivery layer
+Macros are [there](macros/structural/delivery), docs are "coming soon..." :)
+
+## Export layer
+Macros are [there](macros/export_lib), docs are "coming soon..." :)
 
 
 ###   Copyright 2022-2025 Roberto Zagni
