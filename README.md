@@ -6,16 +6,24 @@ in your dbt projects to help you build a pragmatic data platform
 as described in my books: "Data Engineering with dbt" and
 "Building A Pragmatic Data Platform with dbt and Snowflake".
 
-## Installation instructions
-Adding the follwing lines to your `packages.yml` or `dependencies.yml` file should do the trick:
+## Installation
+TL;DR add the following into your `packages.yml` or `dependencies.yml` file 
+to pin to a specific version (suggested):
 ```
-packages:
   # Pragmatic Data Platform package
-  - git: "https://github.com/RobMcZag/pragmatic-data-platform.git"
-    revision: v0.2.0    # Update to the version you want
+  - git: https://github.com/RobMcZag/pragmatic-data-platform.git
+    revision: v0.2.0
 ```
 
-For more options and full info, please [read the dbt docs](https://docs.getdbt.com/docs/build/packages) on how to install packages.
+or the following to stay on the latest, unexpected and unpredictable changes released to 'main' or any other branch you pick:
+```
+  # Pragmatic Data Platform package
+  - git: https://github.com/RobMcZag/pragmatic-data-platform.git
+    revision: main
+    warn-unpinned: false
+```
+
+For the full explanation on how to install packages, please [read the dbt docs](https://docs.getdbt.com/docs/build/packages).
 
 ----
 ## Table of Contents
@@ -30,7 +38,8 @@ For more options and full info, please [read the dbt docs](https://docs.getdbt.c
 
 ----
 
-## Ingestion and extraction layer
+## Ingestion layer
+Macros are [there](macros/ingestion_lib), docs are "coming soon..." :)
 
 ## Storage layer
 The storage layer is used to create an immutable history of the incoming data in the most usable format, 
@@ -120,15 +129,22 @@ The above config is used in the model named `YOUR_STAGE_MODEL` as shown below:
 ```
 
 ### History models - Single version per load
+Macros are [there](macros/structural/storage/single_version), docs are "coming soon..." :)
 
 ### History models - Multiple versions per load
+Macros are [there](macros/structural/storage/multiple_versions), docs are "coming soon..." :)
 
 ## Refined layer
+Macros are [there](macros/structural/refined), docs are "coming soon..." :)
 
 ## Delivery layer
+Macros are [there](macros/structural/delivery), docs are "coming soon..." :)
+
+## Export layer
+Macros are [there](macros/export_lib), docs are "coming soon..." :)
 
 
-###   Copyright 2022-2024 Roberto Zagni
+###   Copyright 2022-2025 Roberto Zagni
    All right reserved.
 
    Licensed under the Apache License, Version 2.0 (the "License");
