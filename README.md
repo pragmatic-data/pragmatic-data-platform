@@ -52,7 +52,7 @@ Ingestion of files into Landing Tables in the Pragmatic Data Platform is based o
 
 For details on the parameters, the format of the dictionaries and examples of use
 of the macros in this section, please look at the [README](macros/ingestion_lib/README.md) 
-file in the `ingestion_lib` folder and the [ingestion](models/ingestion) 
+file in the `ingestion_lib` folder and the [ingestion](integration_tests/models/ingestion) 
 folder in the Integration Tests.
 
 ### Base Macros 
