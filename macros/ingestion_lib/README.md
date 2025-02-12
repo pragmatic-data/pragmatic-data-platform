@@ -1,17 +1,35 @@
 # PDP Ingestion layer 
 Welcome to the **ingestion layer** of the Pragmatic Data Platform (PDP) package.
 
+**Table of Contents**
+- [General ingestion process](#general-ingestion-process)
+- [Ingestion Setup](#ingestion-setup)
+- [Landing Tables Macros](#landing-tables-macros)
+  - [Current, YAML based Landing Table ingestion](#current-yaml-based-landing-table-ingestion)
+  - [Original (legacy), SQL based Landing Table ingestion](#original-legacy-sql-based-landing-table-ingestion)
+- [Ingestion Process Macros](#ingestion-process-macros)
+- [Ingestion Base Macros](#ingestion-base-macros)
+
+## General ingestion process
 The Pragmatic Data Platform can easily ingest CSV and SEMI-STRUCUTRED files located in internal or external stages, 
 allowing you to ingest files from anywhere your Snowflake account is authorized to read.
 
-Ingestion of files into Landing Tables in the PDP is based on two operations:
-1. creation of the landing table, if not exists
-2. ingestion of all new files since the last ingestion
+Ingestion of files into Landing Tables in the PDP is based on three operations:
+1. creation fo the shared DB objects (schema, file format and stage), if they not exists
+2. creation of the landing table, if not exists
+3. ingestion of all the new files since the last ingestion
 
-Before you can start adding code for each Landing Table that you want, you need a very basic setup
-to create the DB schema to hold your LTs, a stage and a file format to point to and read the files
-you want to ingest. If you don't have them already in place look at the [Ingestion Setup](#ingestion-setup)
-section in this page.
+The playbook to ingest files is therefore the following:
+1. create a setup file to define names and the shared DB objects (schema, file format, stage)  
+   This is explained in the [Ingestion Setup](#ingestion-setup) section
+2. create an ingestion file for each landing table  
+   This is explained in the [Landing Tables Macros](#landing-tables-macros) section
+
+We suggest to create a separate folder in your dbt project for each source system you want
+to ingest data from, creating one setup file for each. 
+This is consistent with the fact that usually all files exported from one system 
+are extracted to a single location, with the same file format and you generally 
+want to put all the landing tables in the same DB schema.
 
 For the general process to start ingesting data into landing tables, look at the 
 [Ingestion Macros](#ingestion-macros) section in this page.
