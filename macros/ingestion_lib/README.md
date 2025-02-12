@@ -109,7 +109,7 @@ As you can see the setup is quite straightforward, feeding into the YAML what yo
 The alternative is to directly implement your own macro with code similar to the one in the `ingestion_setup_sql()` macro.
 
 
-## Ingestion Macros
+## Landing Tables Macros
 The Base Macros found in this package are the evolution of the 
 original macros presented in my first book "Data Engineering with dbt".
 
@@ -248,7 +248,7 @@ but instead of being entered as YAML it is entered as the macro parameters.
 {%- endmacro %}
 ```
 
-## Process Macros
+## Ingestion Process Macros
 The original Pragmatic Data Platform playbook was to use the above base macros to create one macro
 that went through the process to ingest the desired data for each Landing Table, as explained in 
 [the SQL based Landing Table ingestion section above](#original-legacy-sql-based-landing-table-ingestion).
@@ -268,7 +268,7 @@ Creates one landing table -if not exists- and ingests the data from the designat
 This macro is a wrapper that executes the Base Macros and logs their output.
 
 
-## Base Macros documentation
+## Ingestion Base Macros
 The following macros are the evolution of the original macros from my book,
 and they are still used to generate the actual code to perform the ingestion.
 
