@@ -8,13 +8,108 @@ Ingestion of files into Landing Tables in the PDP is based on two operations:
 1. creation of the landing table, if not exists
 2. ingestion of all new files since the last ingestion
 
+Before you can start adding code for each Landing Table that you want, you need a very basic setup
+to create the DB schema to hold your LTs, a stage and a file format to point to and read the files
+you want to ingest. If you don't have them already in place look at the [Ingestion Setup](#ingestion-setup)
+section in this page.
+
+For the general process to start ingesting data into landing tables, look at the 
+[Ingestion Macros](#ingestion-macros) section in this page.
+
 For details on the parameters, the format of the dictionaries and basic examples of use
 of the macros in this section, please look at the individual macro definition below in this file.
 
 For extended examples of use you can look in the [ingestion](integration_tests/models/ingestion) folder 
 in the Integration Tests part of this repository.
 
-## Ingestion Macros and evolution of their use
+## Ingestion Setup
+To do the one time setup needed to start ingesting files we use the `ingestion_setup_sql()` macro,
+coupled with a YAML block to easily write the configuration to be passed to the macro.
+
+This is encapsulated into a small setup macro, that is run before the ingestion macros to make sure that
+the correct setup is in place before we go through processing each Landing Table.
+
+The same setup file usually contains also other one time setup needs like names, 
+so that you can define it here once and reuse them everywhere.
+
+All these macros and names usually contain the name of the source system where the data originates,
+in this case SOURCE_XXX, to keep the names unique while allowing to ingest files from multiple systems
+with different setup needs and putting the LTs in different places. 
+
+The setup file looks like this:
+```
+/* **Provide the configuration to set up the schema, file format and stage**
+ * This macro also converts the YAML into a set of nested Pythion dictionaries.
+ */
+{% macro get_SOURCE_XXX_ingestion_cfg() %}
+{% set ingestion_cfg %}
+landing:
+    #database:   "{{ target.database }}"     #-- Leave empty or remove to use the DB for the env (target.database)
+    schema:     LAND_SOURCE_XXX
+    comment:    "'Landing table schema for CSV files from SYSTEM SOURCE_XXX.'"
+
+file_format:
+    name: SOURCE_XXX_CSV__FF
+    definition:
+        TYPE: "'CSV'"                               #-- note the double quotes (for YAML) around the single quotes needed for Snowflake
+        SKIP_HEADER: 1                              #-- Set to 0 and handle afterwards, when we have more than one in each file
+        FIELD_DELIMITER: "','"                      
+        FIELD_OPTIONALLY_ENCLOSED_BY: "'\\042'"     #-- '\042' double quote
+        COMPRESSION: "'AUTO'" 
+        ERROR_ON_COLUMN_COUNT_MISMATCH: TRUE
+        #-- EMPTY_FIELD_AS_NULL: TRUE               #-- sometimes you need this
+        #--NULL_IF: ('', '\\N')                     #-- sometimes you need this too
+        #-- ENCODING: "'ISO-8859-1'"                #-- For nordic languages
+
+stage:
+    name: SOURCE_XXX_CSV__STAGE
+    definition:
+        DIRECTORY: ( ENABLE = true )
+        COMMENT: "'Stage for CSV files from SOURCE_XXX.'"
+        # FILE_FORMAT:                    #-- leave empty (or remove) to use the FF from the stage
+{% endset %}
+
+{{ return(fromyaml(ingestion_cfg)) }}
+{% endmacro %}
+
+/* **Generate the SQL to set up the schema, file format and stage**
+ * We keep in a separated macro so it's easy to inspect :)
+ */
+{%  macro get_SOURCE_XXX_ingestion_setup_sql() %}
+  {% do return(ingestion_setup_sql(cfg = get_SOURCE_XXX_ingestion_cfg())) %}
+{%- endmacro %}
+
+/* ** Run the SQL to set up the schema, file format and stage** */
+{%  macro run_SOURCE_XXX_ingestion_setup() %}
+    {{ log('Setting up landing table schema, file format and stage for schema: '  ~ get_SOURCE_XXX_ingestion_schema_name() ~ ' .', true) }}
+    {% do run_query(get_SOURCE_XXX_ingestion_setup_sql()) %}
+    {{ log('Setup completed for schema: '  ~ get_SOURCE_XXX_ingestion_schema_name() ~ ' .', true) }} 
+{%- endmacro %}
+
+
+/* DEFINE Names or get them from the running environment (target.xxx)  */ 
+{%  macro get_SOURCE_XXX_ingestion_db_name( cfg = get_SOURCE_XXX_ingestion_cfg() ) %}
+  {% do return( cfg.landing.database  or target.database ) %}
+{%- endmacro %}
+
+{%  macro get_SOURCE_XXX_ingestion_schema_name( cfg = get_SOURCE_XXX_ingestion_cfg() ) %}
+  {% do return( cfg.landing.schema or target.schema) %}
+{%- endmacro %}
+
+{%  macro get_SOURCE_XXX_ingestion_csv_ff_name( cfg = get_SOURCE_XXX_ingestion_cfg() ) %}  -- return fully qualified name
+  {% do return( get_SOURCE_XXX_ingestion_db_name() ~ '.' ~ get_SOURCE_XXX_ingestion_schema_name() ~  '.' ~ cfg.file_format.name ) %}
+{%- endmacro %}
+
+{%  macro get_SOURCE_XXX_ingestion_stage_name( cfg = get_SOURCE_XXX_ingestion_cfg() ) %}    -- return fully qualified name
+  {% do return( get_SOURCE_XXX_ingestion_db_name() ~ '.' ~ get_SOURCE_XXX_ingestion_schema_name() ~  '.' ~ cfg.stage.name ) %}
+{%- endmacro %}
+```
+As you can see the setup is quite straightforward, feeding into the YAML what you need to pass on to Snwqflake
+
+The alternative is to directly implement your own macro with code similar to the one in the `ingestion_setup_sql()` macro.
+
+
+## Ingestion Macros
 The Base Macros found in this package are the evolution of the 
 original macros presented in my first book "Data Engineering with dbt".
 
@@ -59,12 +154,12 @@ we pass the two parts of the YAML config to the `run_CSV_ingestion()` macro.
 {%- set yaml_str -%}
 ingestion:
     pattern: '.*/raw_orders/.*/RAW_ORDERS.*[.]csv.gz'
-    stage_name: "{{ get_stage_fq_name() }}"
+    stage_name: "{{ get_SOURCE_XXX_stage_fq_name() }}"
     format_name:
 
 landing_table:
-    db_name:     "{{ get_ingestion_db_name() }}"
-    schema_name: "{{ get_ingestion_schema_name() }}"
+    db_name:     "{{ get_SOURCE_XXX_ingestion_db_name() }}"
+    schema_name: "{{ get_SOURCE_XXX_ingestion_schema_name() }}"
     table_name:  RAW_ORDERS
     columns: #-- Define the landing table columns. Same syntax as in Create Table
         - ORDERKEY: NUMBER NOT NULL
@@ -153,8 +248,30 @@ but instead of being entered as YAML it is entered as the macro parameters.
 {%- endmacro %}
 ```
 
+## Process Macros
+The original Pragmatic Data Platform playbook was to use the above base macros to create one macro
+that went through the process to ingest the desired data for each Landing Table, as explained in 
+[the SQL based Landing Table ingestion section above](#original-legacy-sql-based-landing-table-ingestion).
+
+All these macros went through the same motions to ingest the data, creating a lot of repetitions.
+To reduce repetitions from copy-paste and to simplyfy even more the usage of the ingestion in the Pragmatic Data Platform
+we have crystallized the most common way to use the base macro in the following two macros (one for CSV,
+one for SEMI-STRUCTURED formats) that take the input needed for the base macros and automate the ingestion process.
+The input is passed in two dictionaries that describe the Landing Table and the files to load.
+
+#### run_CSV_ingestion(...)
+Creates one landing table -if not exists- and ingests the data from the designated files.
+This macro is a wrapper that executes the Base Macros and logs their output.
+
+#### run_SEMI_STRUCT_ingestion(...)
+Creates one landing table -if not exists- and ingests the data from the designated files.
+This macro is a wrapper that executes the Base Macros and logs their output.
+
 
 ## Base Macros documentation
+The following macros are the evolution of the original macros from my book,
+and they are still used to generate the actual code to perform the ingestion.
+
 #### create_landing_table_sql(...)
 By passing a dictionary with the table name components (db, schema and name)
 and the column definition (name and eventual type & not null contraint)
@@ -171,19 +288,3 @@ Creates the COPY INTO statement to ingest the desired SEMI-STRUCTURED files into
 The SEMI-STRUCTURED specific feature is that in the `field_definitions`parameter
 we need the name of the target columns and the expression to extrat each from the $1 variant column.
 
-### Process Macros
-The original Pragmatic Data Platform playbook was to use the above macros to create very clean macros
-that ingested the desired data into a Landing Table. One macro for each LT.
-
-Given the repetitions in these macros and to simplyfy even more the usage of the core PDP ingestion macros
-we have crystallized the most common way to use the base macro in the following two macros (one for CSV,
-one for SEMI-STRUCTURED formats) that take the input needed for the base macros and automate the ingestion process.
-The input is passed in two dictionaries that describe the Landing Table and the files to load.
-
-#### run_CSV_ingestion(...)
-Creates one landing table -if not exists- and ingests the data from the designated files.
-This macro is a wrapper that executes the Base Macros and logs their output.
-
-#### run_SEMI_STRUCT_ingestion(...)
-Creates one landing table -if not exists- and ingests the data from the designated files.
-This macro is a wrapper that executes the Base Macros and logs their output.
