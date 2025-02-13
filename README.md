@@ -29,13 +29,6 @@ For the full explanation on how to install packages, please [read the dbt docs](
 Table of Contents
 * [Installation instructions](#installation-instructions)
 * [Ingestion layer](#ingestion-layer)
-  * [Base Macros](#base-macros)
-    * [create_landing_table_sql](#create_landing_table_sql)
-    * [ingest_into_landing_sql](#ingest_into_landing_sql)
-    * [ingest_semi_structured_into_landing_sql](#ingest_semi_structured_into_landing_sql)
-  * [Process Macros](#process-macros)
-    * [run_CSV_ingestion](#run_csv_ingestion)
-    * [run_SEMI_STRUCT_ingestion](#run_semi_struct_ingestion)
 * [Storage layer](#storage-layer)
   * [Staging models](#staging-models)
   * [History models - Single version per load](#history-models---single-version-per-load) 
@@ -46,50 +39,30 @@ Table of Contents
 ----
 
 ## Ingestion layer
-Ingestion of files into Landing Tables in the Pragmatic Data Platform is based on two operations:
-1. creating the landing table, if not exists
-2. ingestion of all new files since the last ingestion
+Ingestion of files into Landing Tables in the PDP is based on three operations:
+1. creation of the shared DB objects (schema, file format and stage), if they not exists
+2. creation of the individual landing table, if not exists
+3. ingestion of all the new files since the last ingestion into the individual landing table
 
-For details on the parameters, the format of the dictionaries and examples of use
-of the macros in this section, please look at the [README](macros/ingestion_lib/README.md) 
-file in the `ingestion_lib` folder and the [ingestion](integration_tests/models/ingestion) 
-folder in the Integration Tests.
+The playbook to ingest files is therefore the following:
+1. create a setup file to define names and the shared DB objects (schema, file format, stage)  
+   This is explained in the [Ingestion Setup](macros/ingestion_lib/README.md#ingestion-setup) section
+2. create an ingestion file for each landing table  
+   This is explained in the [Landing Tables Macros](macros/ingestion_lib/README.md#landing-tables-macros) section
 
-### Base Macros 
-To automate the ingestion operations there are the following three base macros:
+The suggested file organization looks like this:
+```
+/ingestion/                       - a base folder for ingestion macros, to be added to the macro path
+  /system_xxx/
+    /system_xxx__setup.sql        - the file with the setup and naming macros
+    /system_xxx__table_xyz.sql    - the file with the macro to ingest the individual Landing Table
+  /system_zzz/
+    ...
+```
 
-#### create_landing_table_sql(...)
-By passing a dictionary with the table name components (db, schema and name) 
-and the column definition (name and eventual type & not null contraint)
-the macro produces the SQL code to create -if not exists already- 
-or recreate -if forced by the `recreate_table` parameter- 
-the Landing Table in the desired position and shape.
-
-#### ingest_into_landing_sql(...)
-Creates the COPY INTO statement to ingest the desired CSV files into the designated Landing Table.
-The CSV specific feature is that we just need the number of columns, but not their names.
-
-#### ingest_semi_structured_into_landing_sql(...)
-Creates the COPY INTO statement to ingest the desired SEMI-STRUCTURED files into the designated Landing Table.
-The SEMI-STRUCTURED specific feature is that in the `field_definitions`parameter 
-we need the name of the target columns and the expression to extrat each from the $1 variant column.
-
-### Process Macros
-The original Pragmatic Data Platform playbook was to use the above macros to create very clean macros 
-that ingested the desired data into a Landing Table. One macro for each LT.
-
-Given the repetitions in these macros and to simplyfy even more the usage of the core PDP ingestion macros 
-we have crystallized the most common way to use the base macro in the following two macros (one for CSV, 
-one for SEMI-STRUCTURED formats) that take the input needed for the base macros and automate the ingestion process.
-The input is passed in two dictionaries that describe the Landing Table and the files to load.
-
-#### run_CSV_ingestion(...)
-Creates one landing table -if not exists- and ingests the data from the designated files.
-This macro is a wrapper that executes the Base Macros and logs their output.
-
-#### run_SEMI_STRUCT_ingestion(...)
-Creates one landing table -if not exists- and ingests the data from the designated files.
-This macro is a wrapper that executes the Base Macros and logs their output.
+For more details and examples of the ingestion process,
+please look at the [README](macros/ingestion_lib/README.md) file in the `ingestion_lib` folder 
+and the [ingestion](integration_tests/models/ingestion) folder in the Integration Tests.
 
 ## Storage layer
 
