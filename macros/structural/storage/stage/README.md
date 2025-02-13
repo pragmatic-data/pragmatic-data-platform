@@ -2,7 +2,7 @@
 
 ### Building staging models
 
-#### Stage ([source](macros/structural/storage/stage/stage.sql)) ([docs](macros/structural/storage/stage/stage_macros_docs.yml))
+#### Stage ([source](stage.sql)) ([docs](stage_macros_docs.yml))
 
 The macro to build a STAGE model (default prefix STG) from metadata passed as YAML.
 

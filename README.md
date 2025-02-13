@@ -27,14 +27,12 @@ For the full explanation on how to install packages, please [read the dbt docs](
 
 ----
 Table of Contents
-* [Installation instructions](#installation-instructions)
+* [Installation instructions](#installation)
 * [Ingestion layer](#ingestion-layer)
 * [Storage layer](#storage-layer)
-  * [Staging models](#staging-models)
-  * [History models - Single version per load](#history-models---single-version-per-load) 
-  * [History models - Multiple versions per load](#history-models---multiple-versions-per-load) 
 * [Refined layer](#refined-layer)
 * [Delivery layer](#delivery-layer)
+* [Export layer](#export-layer)
 
 ----
 
@@ -160,9 +158,16 @@ to be properly used if/when an entry for the FK becomes available in the Busines
 For more details, check the [README file](macros/structural/delivery/README.md) for the Refined layer.
 
 ## Export layer
-Macros are [there](macros/export_lib), docs are "coming soon..." :)
+The export layer allows to easily write into files the contents of one table.
+It uses a stage and file format, configured in the same way as the ingestion layer, 
+to connect and authorize to the desired storage location.
 
+The available macros allow generating folders by date, optionally cleaning them up before writing the files
+and eventually creating a dummy file to communicta that all the data is exported to the folder. 
 
+For more details, check the [README file](macros/export_lib/README.md) for the Export layer.
+
+----
 ###   Copyright 2022-2025 Roberto Zagni
    All right reserved.
 
