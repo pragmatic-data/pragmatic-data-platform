@@ -168,7 +168,7 @@ and eventually creating a dummy file to communicta that all the data is exported
 For more details, check the [README file](macros/export_lib/README.md) for the Export layer.
 
 ----
-###   Copyright 2022-2025 Roberto Zagni
+### &#169;  Copyright 2022-2025 Roberto Zagni
    All right reserved.
 
    Licensed under the Apache License, Version 2.0 (the "License");
