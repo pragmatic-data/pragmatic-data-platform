@@ -316,3 +316,22 @@ Creates the COPY INTO statement to ingest the desired SEMI-STRUCTURED files into
 The SEMI-STRUCTURED specific feature is that in the `field_definitions`parameter
 we need the name of the target columns and the expression to extrat each from the $1 variant column.
 
+----
+### &#169;  Copyright 2022-2025 Roberto Zagni
+All right reserved.
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+Unless agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+
+If you are unable to accept the above terms, you may not use this
+file and any content of this repository, and you must not keep any copy
+of the content of this repository.
