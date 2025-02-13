@@ -15,9 +15,9 @@ The Pragmatic Data Platform can easily ingest CSV and SEMI-STRUCUTRED files loca
 allowing you to ingest files from anywhere your Snowflake account is authorized to read.
 
 Ingestion of files into Landing Tables in the PDP is based on three operations:
-1. creation fo the shared DB objects (schema, file format and stage), if they not exists
-2. creation of the landing table, if not exists
-3. ingestion of all the new files since the last ingestion
+1. creation of the shared DB objects (schema, file format and stage), if they not exists
+2. creation of the individual landing table, if not exists
+3. ingestion of all the new files since the last ingestion into the individual landing table
 
 The playbook to ingest files is therefore the following:
 1. create a setup file to define names and the shared DB objects (schema, file format, stage)  
@@ -26,10 +26,20 @@ The playbook to ingest files is therefore the following:
    This is explained in the [Landing Tables Macros](#landing-tables-macros) section
 
 We suggest to create a separate folder in your dbt project for each source system you want
-to ingest data from, creating one setup file for each. 
+to ingest data from, creating one setup file for each system.  
 This is consistent with the fact that usually all files exported from one system 
 are extracted to a single location, with the same file format and you generally 
 want to put all the landing tables in the same DB schema.
+
+The suggested file organization looks like this:
+```
+/ingestion/                       - a base folder for ingestion macros, to be added to the macro path
+  /system_xxx/
+    /system_xxx__setup.sql        - the file with the setup and naming macros
+    /system_xxx__table_xyz.sql    - the file with the macro to ingest the individual Landing Table
+  /system_zzz/
+    ...
+```
 
 For the general process to start ingesting data into landing tables, look at the 
 [Ingestion Macros](#ingestion-macros) section in this page.
