@@ -25,11 +25,11 @@ allowing you to ingest and export files from anywhere your Snowflake account is 
 ## Ingestion and export playbook
 The playbook to ingest data from files or export data to files is the following:
 1. create a setup file to define names and the shared DB objects (schema, file format, stage)  
-   This is explained in the [Ingestion Setup](macros/in_out/ingestion_lib/README.md#ingestion-setup) section
+   This is explained in the [Ingestion Setup](#ingestion-and-export-setup) section later inthis file.
 
 2. create a .sql file with the YAML config or SQL code for each table to be ingested or exported
-   A. input is explained in the [Landing Tables Macros](macros/in_out/ingestion_lib/README.md#landing-tables-macros) section
-   B. export is explained in the [Export Macros](macros/in_out/export_lib/README.md#landing-tables-macros) section
+   A. for ingestion read the [Landing Tables Macros](ingestion_lib/README.md#landing-tables-macros) section
+   B. for export read the [Export Macros](export_lib/README.md) section
 
 We suggest to create a separate folder in your dbt project for each source system or domain that you want
 to ingest data from or export data to. This allows you to create a single setup file for each system and 
