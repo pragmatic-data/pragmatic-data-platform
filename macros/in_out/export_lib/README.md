@@ -1,6 +1,10 @@
 # Export layer
 Macros are [here](./), docs are "coming soon..." :)
 
+The available macros allow generating folders by date, optionally cleaning them up before writing the files
+and eventually creating a dummy file to communicta that all the data is exported to the folder. 
+
+
 ----
 ### &#169;  Copyright 2022-2025 Roberto Zagni
 All right reserved.

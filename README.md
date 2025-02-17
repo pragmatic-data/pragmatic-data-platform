@@ -28,39 +28,39 @@ For the full explanation on how to install packages, please [read the dbt docs](
 ----
 Table of Contents
 * [Installation instructions](#installation)
-* [Ingestion layer](#ingestion-layer)
+* [Ingestion and Export layer](#ingestion-and-export-layer)
+  * [Ingestion layer](#ingestion-layer)
+  * [Export layer](#export-layer)
 * [Storage layer](#storage-layer)
 * [Refined layer](#refined-layer)
 * [Delivery layer](#delivery-layer)
-* [Export layer](#export-layer)
 
 ----
 
-## Ingestion layer
-Ingestion of files into Landing Tables in the PDP is based on three operations:
-1. creation of the shared DB objects (schema, file format and stage), if they not exists
-2. creation of the individual landing table, if not exists
-3. ingestion of all the new files since the last ingestion into the individual landing table
+## Ingestion and Export layer
 
-The playbook to ingest files is therefore the following:
-1. create a setup file to define names and the shared DB objects (schema, file format, stage)  
-   This is explained in the [Ingestion Setup](macros/in_out/ingestion_lib/README.md#ingestion-setup) section
-2. create an ingestion file for each landing table  
-   This is explained in the [Landing Tables Macros](macros/in_out/ingestion_lib/README.md#landing-tables-macros) section
+Ingeston and Export are specular operations on files, one loading data from files into tables and 
+the other writing data from tables into files.
 
-The suggested file organization looks like this:
-```
-/ingestion/                       - a base folder for ingestion macros, to be added to the macro path
-  /system_xxx/
-    /system_xxx__setup.sql        - the file with the setup and naming macros
-    /system_xxx__table_xyz.sql    - the file with the macro to ingest the individual Landing Table
-  /system_zzz/
-    ...
-```
+By working on files they both need to setup the DB objects for File Formats and Stages into a DB and Schema.  
+The operations to read or write the data are also similar, both using the COPY INTO command.
 
-For more details and examples of the ingestion process,
-please look at the [README](macros/in_out/ingestion_lib/README.md) file in the `ingestion_lib` folder 
-and the [ingestion](integration_tests/models/ingest_export/ingestion_code_gen) folder in the Integration Tests.
+For this reason they are bundeld together under a common `in_out` folder.  
+The library macros in the package and the ingestion/export macros in your projects.
+
+General details on ingestion and extraction [in the in_out layer README](macros/in_out/README.md) 
+or jump directly to one of the section:  
+* [in_out layer README](macros/in_out/README.md)
+* [Ingestion and Export playbook](macros/in_out/README.md#ingestion-and-export-playbook)
+* [Ingestion and Export Setup](macros/in_out/README.md#ingestion-and-export-sertup)
+
+For more details and examples of the **ingestion** process,
+please look at the [Ingestion layer README](macros/in_out/ingestion_lib/README.md) file in the `ingestion_lib` folder 
+and the [ingestion](integration_tests/models/in_out/ingestion_code_gen) folder in the Integration Tests.
+
+For more details and examples of the **export** process,
+please look at the [Export layer README](macros/in_out/export_lib/README.md) file in the `export_lib` folder 
+and the [export](integration_tests/models/in_out/system_A/export) folder in the Integration Tests.
 
 ## Storage layer
 The storage layer of the Pragmatic Data Platform takes care of storing effectively the incoming source data, 
@@ -156,16 +156,6 @@ This way we avoid orphans by pointing to a default record created just-in-time w
 to be properly used if/when an entry for the FK becomes available in the Business Concept table.
 
 For more details, check the [README file](macros/structural/delivery/README.md) for the Refined layer.
-
-## Export layer
-The export layer allows to easily write into files the contents of one table.
-It uses a stage and file format, configured in the same way as the ingestion layer, 
-to connect and authorize to the desired storage location.
-
-The available macros allow generating folders by date, optionally cleaning them up before writing the files
-and eventually creating a dummy file to communicta that all the data is exported to the folder. 
-
-For more details, check the [README file](macros/in_out/export_lib/README.md) for the Export layer.
 
 ----
 ### &#169;  Copyright 2022-2025 Roberto Zagni
