@@ -1,5 +1,5 @@
 {% set ingestion_cfg %}
-landing:
+landing:                         #-- The DB and Schema config can be also the 'inout:' attribute
     database:  PDP_TARGET_DB     #-- Leave empty or remove to use the DB for the env (target.database)
     schema:     LAND_SAMPLE_XXX
     comment:    "'Landing table schema for CSV files from SYSTEM SAMPLE_XXX.'"
@@ -23,4 +23,4 @@ stage:
 {% endset %}
 
 SELECT 
-$${{ pragmatic_data.ingestion_setup_sql( cfg = fromyaml(ingestion_cfg) ) }}$$ as generated_sql
+$${{ pragmatic_data.inout_setup_sql( cfg = fromyaml(ingestion_cfg) ) }}$$ as generated_sql

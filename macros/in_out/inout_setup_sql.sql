@@ -1,14 +1,17 @@
 {%  macro inout_setup_sql(cfg) %}
 
+-- get db and schema names with one of the three possible names of the section
+{% set inout = cfg.inout or cfg.landing or cfg.export %}
+
 -- 1. Creation of the schema for the Landing Tables
-CREATE SCHEMA IF NOT EXISTS {{ pragmatic_data.get_inout_fq_schema(cfg.inout) }}
-COMMENT = {{ cfg.inout.comment or 'Schema for Landing Tables.'}};
+CREATE SCHEMA IF NOT EXISTS {{ pragmatic_data.get_inout_fq_schema(inout) }}
+COMMENT = {{ inout.comment or 'Schema for Landing Tables.'}};
 
 -- 2. Creation of the File Format to read the files for the Landing Tables
-{{ pragmatic_data.create_file_format(cfg.file_format, cfg.inout) }}
+{{ pragmatic_data.create_file_format(cfg.file_format, inout) }}
 
 -- 3. Creation of the Stage holding the files for the Landing Tables
-{{ pragmatic_data.create_stage(cfg.stage, cfg.file_format, cfg.inout) }}
+{{ pragmatic_data.create_stage(cfg.stage, cfg.file_format, inout) }}
 
 {%- endmacro %}
 
