@@ -28,9 +28,7 @@ For the full explanation on how to install packages, please [read the dbt docs](
 ----
 Table of Contents
 * [Installation instructions](#installation)
-* [Ingestion and Export layer](#ingestion-and-export-layer)
-  * [Ingestion layer](#ingestion-layer)
-  * [Export layer](#export-layer)
+* [Ingestion and Export layers](#ingestion-and-export-layer)
 * [Storage layer](#storage-layer)
 * [Refined layer](#refined-layer)
 * [Delivery layer](#delivery-layer)
@@ -50,15 +48,15 @@ The library macros in the package and the ingestion/export macros in your projec
 
 General details on ingestion and extraction [in the in_out layer README](macros/in_out/README.md) 
 or jump directly to one of the section:  
-* [in_out layer README](macros/in_out/README.md)
+* [Ingestion and Export layer README](macros/in_out/README.md)
 * [Ingestion and Export playbook](macros/in_out/README.md#ingestion-and-export-playbook)
-* [Ingestion and Export Setup](macros/in_out/README.md#ingestion-and-export-sertup)
+* [Ingestion and Export setup](macros/in_out/README.md#ingestion-and-export-setup)
 
-For more details and examples of the **ingestion** process,
+For more details and examples of the **ingestion** specific process,
 please look at the [Ingestion layer README](macros/in_out/ingestion_lib/README.md) file in the `ingestion_lib` folder 
 and the [ingestion](integration_tests/models/in_out/ingestion_code_gen) folder in the Integration Tests.
 
-For more details and examples of the **export** process,
+For more details and examples of the **export** specific process,
 please look at the [Export layer README](macros/in_out/export_lib/README.md) file in the `export_lib` folder 
 and the [export](integration_tests/models/in_out/system_A/export) folder in the Integration Tests.
 

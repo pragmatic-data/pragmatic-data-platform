@@ -2,8 +2,8 @@
 Welcome to the **ingestion layer** of the Pragmatic Data Platform (PDP) package.
 
 **Table of Contents**
-- [General ingestion process](../README.md#general-ingestion-process)
-- [Ingestion Setup](../README.md#ingestion-and-export-setup)
+- [General ingestion and export process](../README.md#general-ingestion-process) in the in_out folder.
+- [Ingestion and export Setup](../README.md#ingestion-and-export-setup) in the in_out folder.
 - [Landing Tables Macros](#landing-tables-macros)
   - [Current, YAML based Landing Table ingestion](#current-yaml-based-landing-table-ingestion)
   - [Original (legacy), SQL based Landing Table ingestion](#original-legacy-sql-based-landing-table-ingestion)
@@ -13,11 +13,11 @@ Welcome to the **ingestion layer** of the Pragmatic Data Platform (PDP) package.
 ## Ingestion and export playbook
 The playbook to ingest data from files or export data to files is the following:
 1. create a setup file to define names and the shared DB objects (schema, file format, stage)  
-   This is explained in the [Ingestion Setup](macros/in_out/README.md#ingestion-and-export-setup) section
+   This is explained in the [Ingestion Setup](../README.md#ingestion-and-export-setup) section
 
 2. create a .sql file with the YAML config or SQL code for each table to be ingested or exported
-   A. import is explained in the [Landing Tables Macros](#landing-tables-macros) section below
-   B. export is explained in the [Export Macros](macros/in_out/export_lib/README.md) section
+   A. for ingestion read the [Landing Tables Macros](#landing-tables-macros) section below
+   B. for export read the [Export Macros](../export_lib/README.md) section
 
 ## Landing Tables Macros
 The Base Macros found in this package are the evolution of the 
