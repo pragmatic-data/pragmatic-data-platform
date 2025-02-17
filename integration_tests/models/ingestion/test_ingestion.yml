@@ -4,7 +4,7 @@ models:
   - name: TEST_INGESTION_SETUP_SQL
     data_tests:
       - dbt_utils.expression_is_true:
-          expression: "CONTAINS(UPPER(generated_sql), UPPER('CREATE SCHEMA IF NOT EXISTS PDP_TEST.LAND_SAMPLE_XXX'))"
+          expression: "CONTAINS(UPPER(generated_sql), UPPER('CREATE SCHEMA IF NOT EXISTS {{target.database}}.LAND_SAMPLE_XXX'))"
       - dbt_utils.expression_is_true:
           expression: "CONTAINS(UPPER(generated_sql), UPPER($$COMMENT = 'Landing table schema for CSV files from SYSTEM SAMPLE_XXX.';$$))"
 
@@ -22,9 +22,9 @@ models:
           expression: "CONTAINS(UPPER(generated_sql), UPPER($$ERROR_ON_COLUMN_COUNT_MISMATCH = True$$))"
 
       - dbt_utils.expression_is_true:
-          expression: "CONTAINS(UPPER(generated_sql), UPPER($$CREATE STAGE IF NOT EXISTS PDP_TEST.LAND_SAMPLE_XXX.SAMPLE_XXX_CSV__STAGE$$))"
+          expression: "CONTAINS(UPPER(generated_sql), UPPER($$CREATE STAGE IF NOT EXISTS {{target.database}}.LAND_SAMPLE_XXX.SAMPLE_XXX_CSV__STAGE$$))"
       - dbt_utils.expression_is_true:
-          expression: "CONTAINS(UPPER(generated_sql), UPPER($$FILE_FORMAT = PDP_TEST.LAND_SAMPLE_XXX.SAMPLE_XXX_CSV__FF$$))"
+          expression: "CONTAINS(UPPER(generated_sql), UPPER($$FILE_FORMAT = {{target.database}}.LAND_SAMPLE_XXX.SAMPLE_XXX_CSV__FF$$))"
       - dbt_utils.expression_is_true:
           expression: "CONTAINS(UPPER(generated_sql), UPPER($$DIRECTORY = ( ENABLE = true )$$))"
       - dbt_utils.expression_is_true:
