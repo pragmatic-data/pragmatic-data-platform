@@ -12,7 +12,7 @@ to pin to a specific version (suggested):
 ```
   # Pragmatic Data Platform package
   - git: https://github.com/RobMcZag/pragmatic-data-platform.git
-    revision: v0.2.0
+    revision: 0.3.0
 ```
 
 or the following to stay on the latest, unexpected and unpredictable changes released to 'main' or any other branch you pick:
@@ -22,6 +22,7 @@ or the following to stay on the latest, unexpected and unpredictable changes rel
     revision: main
     warn-unpinned: false
 ```
+NOTE: releases up to 0.2.0 used a trailing `v`, so you have to import them as `revision: v0.2.0`.  
 
 For the full explanation on how to install packages, please [read the dbt docs](https://docs.getdbt.com/docs/build/packages).
 
