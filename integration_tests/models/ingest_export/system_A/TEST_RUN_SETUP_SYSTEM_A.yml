@@ -1,0 +1,25 @@
+version: 2
+
+models:
+  - name: TEST_RUN_SETUP_SYSTEM_A
+    columns:
+      - name: RELATIVE_PATH
+        data_tests:
+          - dbt_expectations.expect_column_to_exist
+          - dbt_expectations.expect_column_values_to_match_like_pattern:
+              like_pattern: "SYSTEM_A/generic/%.csv.gz"
+      - name: SIZE
+        data_tests:
+          - dbt_expectations.expect_column_to_exist
+      - name: LAST_MODIFIED
+        data_tests:
+          - dbt_expectations.expect_column_to_exist
+      - name: MD5
+        data_tests:
+          - dbt_expectations.expect_column_to_exist
+      - name: ETAG
+        data_tests:
+          - dbt_expectations.expect_column_to_exist
+      - name: FILE_URL
+        data_tests:
+          - dbt_expectations.expect_column_to_exist

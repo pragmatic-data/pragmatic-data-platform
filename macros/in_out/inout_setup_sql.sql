@@ -50,7 +50,7 @@ COMMENT = {{ cfg.inout.comment or 'Schema for Landing Tables.'}};
 CREATE FILE FORMAT IF NOT EXISTS {{ fq_file_format_name }}
         {%- for option, value in file_format.definition.items() %}
             {%- if option and value %}
-    {{option}} = {{value}}
+    {{option}} = {{value}}        
             {%- endif %}
         {%- endfor %}
 ;
@@ -68,7 +68,7 @@ CREATE FILE FORMAT IF NOT EXISTS {{ fq_file_format_name }}
 
         {%- set stage_file_format = stage.definition.FILE_FORMAT or stage.definition['FILE_FORMAT'] %}
         {%- if stage_file_format %}
-            {%- set stage_fq_file_format = stage_file_format if '.' in stage_file_format
+            {%- set stage_fq_file_format = stage_file_format if '.' in stage_file_format 
                                                             else pragmatic_data.get_inout_fq_file_format_name(stage_file_format, inout)  %}
             {%- do stage.definition.update({'FILE_FORMAT': stage_fq_file_format}) %}
         {%- elif file_format %}
@@ -77,7 +77,7 @@ CREATE FILE FORMAT IF NOT EXISTS {{ fq_file_format_name }}
 CREATE STAGE IF NOT EXISTS {{ fq_stage_name }}
         {%- for option, value in stage.definition.items() %}
             {%- if option and value %}
-        {{option}} = {{value}}
+        {{option}} = {{value}}        
             {%- endif %}
         {%- endfor %}
 ;

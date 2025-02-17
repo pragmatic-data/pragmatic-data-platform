@@ -4,7 +4,7 @@
     recreate_table = false
 ) %}
 {% if execute %}
-
+    
 {% set full_table_name = landing_table_dict.db_name 
                  ~ '.' ~ landing_table_dict.schema_name 
                  ~ '.' ~ landing_table_dict.table_name %}
