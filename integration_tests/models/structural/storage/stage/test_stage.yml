@@ -53,6 +53,26 @@ models:
           - COLUMN_4     
 
   - name: TEST_STAGE__EXTERNAL_CONFIG
+    description: |
+      AI Generated description:  
+      This model stages data from the GENERIC_TWO_COLUMN_TABLE, 
+      applying external configurations such as calculated columns, hashed columns, and default records.  
+      It also handles duplicate removal based on the provided configuration.
+    columns:
+      - name: column_1
+        description: A string column derived from Column1 in the source model.
+      - name: column_2
+        description: A string column derived from the uppercased value of Column2 in the source model.
+      - name: column_3
+        description: A constant string value '!COL_4_CONSTANT'.
+      - name: column_4
+        description: A timestamp representing the current time when the model is run.
+      - name: model_hkey
+        description: A binary hash key generated from COLUMN_1.
+      - name: other_hkey
+        description: A binary hash key generated from COLUMN_1 and COLUMN_2.
+      - name: model_hdiff
+        description: A binary hash difference key generated from COLUMN_1, COLUMN_2, and COLUMN_3.
     config:
       source_columns:     *stg_model_source_columns
       source:             *stg_model_source

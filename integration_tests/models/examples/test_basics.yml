@@ -1,0 +1,30 @@
+version: 2
+
+models:
+  - name: TEST_SELECT_FROM_TABLE
+    description: |
+      AI Generated description:  
+      This model consolidates data from the generic two column table and adds additional static entries for analysis. 
+      It combines existing data with predefined values to ensure comprehensive coverage.
+    data_tests:
+      - dbt_utils.expression_is_true:
+          expression: "len(Column1) + len(Column2) = 6"
+    columns:
+      - name: Column1
+        description: |
+          AI Generated description:  
+          This column contains either values from the generic two column table or predefined static values 'ddd' and 'eee'.
+        data_tests:
+          - not_null
+          - unique
+          - dbt_utils.at_least_one
+          - dbt_utils.not_constant
+          - dbt_utils.relationships_where:
+              to: ref('GENERIC_TWO_COLUMN_TABLE')
+              field: Column1
+              from_condition: Column2 < 400
+      - name: column2
+        description: |
+          AI Generated description:  
+          This column contains either numeric values from the generic two column table or predefined static values 444 and 555.
+    
