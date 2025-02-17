@@ -1,9 +1,10 @@
-{% macro run_SEMI_STRUCT_ingestion(
+{% macro run_semi_structured_ingestion(
     landing_table_dict,
     ingestion_dict,
     recreate_table = false
 ) %}
-
+{% if execute %}
+    
 {% set full_table_name = landing_table_dict.db_name
                  ~ '.' ~ landing_table_dict.schema_name
                  ~ '.' ~ landing_table_dict.table_name %}
@@ -23,7 +24,7 @@
 {{ log('Starting ingestion into Landing Table ' ~ full_table_name , info=True) }}
 {{ log(' Creating Landing Table ' ~ full_table_name , info=True) }}
 {% set results = run_query(
-    create_landing_table_sql(
+    pragmatic_data.create_landing_table_sql(
         landing_table_dict = landing_table_dict,
         recreate_table = recreate_table
 ) ) %}
@@ -31,7 +32,7 @@
 
 {{ log(' Ingesting data into Landing Table ' ~ full_table_name , info=True) }}
 {% set results = run_query(
-    ingest_semi_structured_into_landing_sql(
+    pragmatic_data.ingest_semi_structured_into_landing_sql(
         full_table_name     = full_table_name,
         field_definitions   = field_definitions,
         file_pattern        = ingestion_dict.pattern,
@@ -50,4 +51,5 @@ Status: {{ results.columns[0].values()[0]  }}
 {{ log(' *** ' ~ ingestion_result_str , info=True) }}
 {{ log('DONE ingestion into Landing Table ' ~ full_table_name , info=True) }}
 
+{% endif %}
 {% endmacro %}

@@ -1,0 +1,48 @@
+version: 2
+
+models:
+  - name: TEST_SETUP_SYSTEM_A
+    data_tests:
+      - dbt_utils.expression_is_true:
+          expression: "CONTAINS(UPPER(result), UPPER(inout_schema))"
+    columns:
+      - name: RESULT
+        data_tests:
+          - dbt_expectations.expect_column_values_to_match_like_pattern:
+              like_pattern: "%CREATE SCHEMA IF NOT EXISTS %' || inout_schema || '%"
+          - dbt_expectations.expect_column_values_to_match_like_pattern:
+              like_pattern: "%CREATE FILE FORMAT IF NOT EXISTS %' || file_format_name || '%"
+          - dbt_expectations.expect_column_values_to_match_like_pattern:
+              like_pattern: "%CREATE STAGE IF NOT EXISTS %' || stage_name || '%"
+          - dbt_expectations.expect_column_values_to_match_like_pattern:
+              like_pattern: "%TYPE = %' || file_format_definition_TYPE || '%"
+          - dbt_expectations.expect_column_values_to_match_like_pattern:
+              like_pattern: "%FILE_FORMAT = PDP_TEST.LAND_SYSTEM_A.SYSTEM_A_CSV__FF%"
+          - dbt_expectations.expect_column_values_to_match_like_pattern:
+              like_pattern: "%FIELD_OPTIONALLY_ENCLOSED_BY = ' || $$'\\042'$$ || '%"
+          - dbt_expectations.expect_column_values_to_match_like_pattern:
+              like_pattern: "%DIRECTORY = %' || stage_definition_DIRECTORY || '%"
+
+# {'inout': {'schema': 'LAND_SYSTEM_A', 'comment': "'Landing table schema for files from SYSTEM_A.'"}, 'file_format': {'name': 'SYSTEM_A_CSV__FF', 'definition': {'TYPE': "'CSV'", 'SKIP_HEADER': 1, 'FIELD_DELIMITER': "','", 'FIELD_OPTIONALLY_ENCLOSED_BY': "'\\042'", 'COMPRESSION': "'AUTO'", 'ERROR_ON_COLUMN_COUNT_MISMATCH': True}}, 'stage': {'name': 'SYSTEM_A__STAGE', 'definition': {'DIRECTORY': '( ENABLE = true )', 'COMMENT': "'Stage for files from SYSTEM_A.'", 'FILE_FORMAT': None}}}
+
+# -- 1. Creation of the schema for the Landing Tables
+# CREATE SCHEMA IF NOT EXISTS PDP_TEST.LAND_SYSTEM_A
+# COMMENT = 'Landing table schema for files from SYSTEM_A.';
+
+
+# -- 2. Creation of the File Format to read the files for the Landing Tables
+# CREATE FILE FORMAT IF NOT EXISTS PDP_TEST.LAND_SYSTEM_A.SYSTEM_A_CSV__FF
+#     TYPE = 'CSV'
+#     SKIP_HEADER = 1
+#     FIELD_DELIMITER = ','
+#     FIELD_OPTIONALLY_ENCLOSED_BY = '\042'
+#     COMPRESSION = 'AUTO'
+#     ERROR_ON_COLUMN_COUNT_MISMATCH = True
+# ;
+
+# -- 3. Creation of the Stage holding the files for the Landing Tables
+# CREATE STAGE IF NOT EXISTS PDP_TEST.LAND_SYSTEM_A.SYSTEM_A__STAGE
+#     FILE_FORMAT = PDP_TEST.LAND_SYSTEM_A.SYSTEM_A_CSV__FF
+#     DIRECTORY = ( ENABLE = true )
+#     COMMENT = 'Stage for files from SYSTEM_A.'
+# ;
