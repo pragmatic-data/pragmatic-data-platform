@@ -17,7 +17,7 @@ models:
           - dbt_expectations.expect_column_values_to_match_like_pattern:
               like_pattern: "%TYPE = %' || file_format_definition_TYPE || '%"
           - dbt_expectations.expect_column_values_to_match_like_pattern:
-              like_pattern: "%FILE_FORMAT = PDP_TEST.LAND_SYSTEM_A.SYSTEM_A_CSV__FF%"
+              like_pattern: "%FILE_FORMAT = {{target.database}}.LAND_SYSTEM_A.SYSTEM_A_CSV__FF%"
           - dbt_expectations.expect_column_values_to_match_like_pattern:
               like_pattern: "%FIELD_OPTIONALLY_ENCLOSED_BY = ' || $$'\\042'$$ || '%"
           - dbt_expectations.expect_column_values_to_match_like_pattern:

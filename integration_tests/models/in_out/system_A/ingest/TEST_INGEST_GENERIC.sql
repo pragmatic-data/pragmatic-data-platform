@@ -1,4 +1,5 @@
--- depends_on: {{ ref('TEST_RUN_SETUP_SYSTEM_A') }} 
+-- depends_on: {{ ref('TEST_RUN_SETUP_SYSTEM_A') }}     <- the model running the setup
+-- depends_on: {{ ref('TEST_EXPORT_GENERIC_JINJA') }}   <- the model writing out the data
 
 {#% set full_table_name = source('SYSTEM_A', 'GENERIC_TWO_COLUMN_TABLE') %#}
 {%- set full_table_name = get_SYSTEM_A_inout_db_name() 
