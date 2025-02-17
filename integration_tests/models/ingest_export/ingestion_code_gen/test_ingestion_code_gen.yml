@@ -29,3 +29,25 @@ models:
           expression: "CONTAINS(UPPER(generated_sql), UPPER($$DIRECTORY = ( ENABLE = true )$$))"
       - dbt_utils.expression_is_true:
           expression: "CONTAINS(UPPER(generated_sql), UPPER($$COMMENT = 'Stage for CSV files from SAMPLE_XXX.'$$))"
+
+  - name: TEST_INGESTION_SETUP_SQL__MULTIPLE
+    data_tests:
+      - dbt_utils.expression_is_true:
+          expression: "CONTAINS(UPPER(generated_sql), UPPER('CREATE SCHEMA IF NOT EXISTS PDP_TARGET_DB.LAND_SAMPLE_XXX'))"
+
+      - dbt_utils.expression_is_true:
+          expression: "CONTAINS(UPPER(generated_sql), UPPER('CREATE FILE FORMAT IF NOT EXISTS PDP_TARGET_DB.LAND_SAMPLE_XXX.SAMPLE_XXX_CSV__FF'))"
+      - dbt_utils.expression_is_true:
+          expression: "CONTAINS(UPPER(generated_sql), UPPER('CREATE FILE FORMAT IF NOT EXISTS PDP_TARGET_DB.LAND_SAMPLE_XXX.MY_JSON__FF'))"
+      - dbt_utils.expression_is_true:
+          expression: "CONTAINS(UPPER(generated_sql), UPPER('CREATE FILE FORMAT IF NOT EXISTS PDP_TARGET_DB.LAND_SAMPLE_XXX.MY_PARQUET__FF'))"
+
+      - dbt_utils.expression_is_true:
+          expression: "CONTAINS(UPPER(generated_sql), UPPER('CREATE STAGE IF NOT EXISTS PDP_TARGET_DB.LAND_SAMPLE_XXX.SAMPLE_XXX_CSV__STAGE'))"
+      - dbt_utils.expression_is_true:
+          expression: "CONTAINS(UPPER(generated_sql), UPPER('CREATE STAGE IF NOT EXISTS PDP_TARGET_DB.LAND_SAMPLE_XXX.JSON__STAGE'))"
+      - dbt_utils.expression_is_true:
+          expression: "CONTAINS(UPPER(generated_sql), UPPER('CREATE STAGE IF NOT EXISTS PDP_TARGET_DB.LAND_SAMPLE_XXX.Parquet_01__STAGE'))"
+      - dbt_utils.expression_is_true:
+          expression: "CONTAINS(UPPER(generated_sql), UPPER('CREATE STAGE IF NOT EXISTS PDP_TARGET_DB.LAND_SAMPLE_XXX.Parquet_02__STAGE'))"
+

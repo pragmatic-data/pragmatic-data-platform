@@ -1,17 +1,35 @@
 {%  macro inout_setup_sql(cfg) %}
 
--- get db and schema names with one of the three possible names of the section
-{% set inout = cfg.inout or cfg.landing or cfg.export %}
+{#- get db and schema names with one of the three possible names of the section #}
+{%- set inout = cfg.inout or cfg.landing or cfg.export %}
 
 -- 1. Creation of the schema for the Landing Tables
 CREATE SCHEMA IF NOT EXISTS {{ pragmatic_data.get_inout_fq_schema(inout) }}
 COMMENT = {{ inout.comment or 'Schema for Landing Tables.'}};
 
 -- 2. Creation of the File Format to read the files for the Landing Tables
-{{ pragmatic_data.create_file_format(cfg.file_format, inout) }}
+{%- if cfg.file_format %}
+    {{- pragmatic_data.create_file_format(cfg.file_format, inout) }}
+{%- elif cfg.file_formats %}
+    {%- for file_format in cfg.file_formats.values() %}
+        {{- pragmatic_data.create_file_format(file_format, inout) }}
+    {%- endfor %}
+{%- else %}
+-- FILE FORMAT not specified in the Config object provided
+{{ exceptions.raise_compiler_error("Missing file format configuration. Got: " ~ file_format | pprint) }}
+{%- endif %}
 
 -- 3. Creation of the Stage holding the files for the Landing Tables
-{{ pragmatic_data.create_stage(cfg.stage, cfg.file_format, inout) }}
+{%- if cfg.stage %}
+    {{- pragmatic_data.create_stage(cfg.stage, cfg.file_format, inout) }}
+{%- elif cfg.stages %}
+    {% for stage in cfg.stages.values() %}
+        {{- pragmatic_data.create_stage(stage, cfg.file_format, inout) }}
+    {%- endfor %}
+{%- else %}
+-- STAGE not specified in the Config object provided
+{{ exceptions.raise_compiler_error("Missing stage configuration. Got: " ~ stage | pprint) }}
+{%- endif %}
 
 {%- endmacro %}
 
@@ -65,7 +83,6 @@ CREATE FILE FORMAT IF NOT EXISTS {{ fq_file_format_name }}
 
 
 {% macro create_stage(stage, file_format = none, inout = none) %}
-
     {%- if stage and stage.definition %}
         {%- set fq_stage_name = stage.fq_name or pragmatic_data.get_inout_fq_stage_name(stage.name, inout) %}
 
@@ -88,5 +105,4 @@ CREATE STAGE IF NOT EXISTS {{ fq_stage_name }}
         -- STAGE or its definition not specified in the Config object provided
         {{ exceptions.raise_compiler_error("Missing or invalid stage configuration. Got: " ~ stage | pprint) }}
     {%- endif %}
-
 {% endmacro %}
