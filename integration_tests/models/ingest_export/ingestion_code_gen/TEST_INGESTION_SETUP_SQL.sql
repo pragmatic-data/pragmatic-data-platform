@@ -1,6 +1,6 @@
 {% set ingestion_cfg %}
 landing:
-    #database:  PDP_TEST     #-- Leave empty or remove to use the DB for the env (target.database)
+    database:  PDP_TARGET_DB     #-- Leave empty or remove to use the DB for the env (target.database)
     schema:     LAND_SAMPLE_XXX
     comment:    "'Landing table schema for CSV files from SYSTEM SAMPLE_XXX.'"
 

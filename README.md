@@ -60,7 +60,7 @@ The suggested file organization looks like this:
 
 For more details and examples of the ingestion process,
 please look at the [README](macros/in_out/ingestion_lib/README.md) file in the `ingestion_lib` folder 
-and the [ingestion](integration_tests/models/ingestion) folder in the Integration Tests.
+and the [ingestion](integration_tests/models/ingest_export/ingestion_code_gen) folder in the Integration Tests.
 
 ## Storage layer
 The storage layer of the Pragmatic Data Platform takes care of storing effectively the incoming source data, 
