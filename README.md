@@ -44,9 +44,9 @@ Ingestion of files into Landing Tables in the PDP is based on three operations:
 
 The playbook to ingest files is therefore the following:
 1. create a setup file to define names and the shared DB objects (schema, file format, stage)  
-   This is explained in the [Ingestion Setup](macros/ingestion_lib/README.md#ingestion-setup) section
+   This is explained in the [Ingestion Setup](macros/in_out/ingestion_lib/README.md#ingestion-setup) section
 2. create an ingestion file for each landing table  
-   This is explained in the [Landing Tables Macros](macros/ingestion_lib/README.md#landing-tables-macros) section
+   This is explained in the [Landing Tables Macros](macros/in_out/ingestion_lib/README.md#landing-tables-macros) section
 
 The suggested file organization looks like this:
 ```
@@ -59,7 +59,7 @@ The suggested file organization looks like this:
 ```
 
 For more details and examples of the ingestion process,
-please look at the [README](macros/ingestion_lib/README.md) file in the `ingestion_lib` folder 
+please look at the [README](macros/in_out/ingestion_lib/README.md) file in the `ingestion_lib` folder 
 and the [ingestion](integration_tests/models/ingestion) folder in the Integration Tests.
 
 ## Storage layer
@@ -165,7 +165,7 @@ to connect and authorize to the desired storage location.
 The available macros allow generating folders by date, optionally cleaning them up before writing the files
 and eventually creating a dummy file to communicta that all the data is exported to the folder. 
 
-For more details, check the [README file](macros/export_lib/README.md) for the Export layer.
+For more details, check the [README file](macros/in_out/export_lib/README.md) for the Export layer.
 
 ----
 ### &#169;  Copyright 2022-2025 Roberto Zagni
