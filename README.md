@@ -160,18 +160,21 @@ For more details, check the [README file](macros/structural/delivery/README.md) 
 ### &#169;  Copyright 2022-2025 Roberto Zagni
    All right reserved.
 
-   Licensed under the Apache License, Version 2.0 (the "License");
-   you may not use this file except in compliance with the License.
-   You may obtain a copy of the License at
+This software is licensed with a dual license based on the use of the software.
 
-       http://www.apache.org/licenses/LICENSE-2.0
+Licensed under the PROPRIETARY LICENSE for use in consulting, billable work or 
+any other work performed in association with a commercial transaction or when it 
+is not explicitly granted another licence.
 
-   Unless agreed to in writing, software
-   distributed under the License is distributed on an "AS IS" BASIS,
-   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-   See the License for the specific language governing permissions and
-   limitations under the License.  
+Licensed under the APACHE LICENSE only for use in personal, non commercial, academic
+or internal use in own systems by Legal Entities for work performed by employees of 
+such Legal Entities. This explicitly excludes any consulting or work for hire use.
 
-   If you are unable to accept the above terms, you may not use this 
-   file and any content of this repository, and you must not keep any copy 
-   of the content of this repository.
+Unless agreed to in writing, software distributed under the Licenses is distributed 
+on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express 
+or implied. See the Licenses for the specific language governing permissions and 
+limitations under the License.  
+
+If you are unable to accept the above terms, you may not use this file and any 
+content of this repository, and you must not keep any copy of the content of this 
+repository.
