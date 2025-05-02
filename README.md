@@ -11,8 +11,8 @@ TL;DR add the following into your `packages.yml` or `dependencies.yml` file
 to pin to a specific version (suggested):
 ```
   # Pragmatic Data Platform package
-  - git: https://github.com/RobMcZag/pragmatic-data-platform.git
-    revision: 0.3.0
+  - git: https://github.com/pragmatic-data/pragmatic-data-platform.git
+    revision: 0.4.1
 ```
 
 or the following to stay on the latest, unexpected and unpredictable changes released to 'main' or any other branch you pick:
