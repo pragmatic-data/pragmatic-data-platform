@@ -77,7 +77,7 @@ CREATE FILE FORMAT IF NOT EXISTS {{ fq_file_format_name }}
 ;
     {%- else %}
         -- FILE FORMAT or its definition not specified in the Config object provided
-        {{ exceptions.raise_compiler_error("Missing or invalid file format configuration. Got: " ~ file_format | pprint) }}
+        {#{ exceptions.raise_compiler_error("Missing or invalid file format configuration. Got: " ~ file_format | pprint) }#}
     {%- endif %}
 {% endmacro %}
 
@@ -103,6 +103,6 @@ CREATE STAGE IF NOT EXISTS {{ fq_stage_name }}
 ;
     {%- else %}
         -- STAGE or its definition not specified in the Config object provided
-        {{ exceptions.raise_compiler_error("Missing or invalid stage configuration. Got: " ~ stage | pprint) }}
+        {#{ exceptions.raise_compiler_error("Missing or invalid stage configuration. Got: " ~ stage | pprint) }#}
     {%- endif %}
 {% endmacro %}
