@@ -6,8 +6,6 @@
     load_ts_column          = var('pdp.load_ts_column', 'INGESTION_TS_UTC')
 ) -%}
 
-{{ config(materialized='incremental') }}
-
 {% set hist_load_ts_column = var('pdp.hist_load_ts_column', 'HIST_LOAD_TS_UTC') %}
 
 WITH
