@@ -13,7 +13,6 @@
     history_rel = this
 ) -%}
 
-{{ config(materialized='incremental') }}
 {% if execute and not flags.FULL_REFRESH %}
     {% set ext_input = (history_rel != this) %}    {#% print(existing)%#}
 {% endif %}

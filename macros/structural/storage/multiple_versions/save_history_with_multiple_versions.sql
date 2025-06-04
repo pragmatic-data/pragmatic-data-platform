@@ -11,7 +11,6 @@
     history_filter_expr = 'true'
 ) -%}
 
-{{- config(materialized='incremental') }}
 {%- if execute and not flags.FULL_REFRESH %}
     {% set incremental_w_external_input = (history_rel != this) %}
 {% endif -%}
