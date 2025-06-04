@@ -31,8 +31,9 @@ load_from_input as (
 ),
 deleted_from_hist as (
     SELECT 
-        curr.* EXCLUDE (deleted, {{load_ts_column}})
-        , '{{ run_started_at }}' as {{load_ts_column}}
+        curr.* EXCLUDE (deleted, {{load_ts_column}}, {{hist_load_ts_column}})
+        , '{{ run_started_at }}'::timestamp as {{hist_load_ts_column}}
+        , '{{ run_started_at }}'::timestamp as {{load_ts_column}}
         , true as deleted
     FROM current_from_history curr 
     LEFT OUTER JOIN {{ input_rel }} as i ON (i.{{key_column}} = curr.{{key_column}})
