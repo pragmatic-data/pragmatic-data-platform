@@ -3,7 +3,8 @@
     key_column,
     diff_column,
 
-    load_ts_column          = var('pdp.load_ts_column', 'INGESTION_TS_UTC')
+    load_ts_column          = var('pdp.load_ts_column', 'INGESTION_TS_UTC'),
+    effectivity_column      = none
 ) -%}
 
 {% set hist_load_ts_column = var('pdp.hist_load_ts_column', 'HIST_LOAD_TS_UTC') %}
@@ -31,7 +32,13 @@ load_from_input as (
 ),
 deleted_from_hist as (
     SELECT 
-        curr.* EXCLUDE (deleted, {{load_ts_column}}, {{hist_load_ts_column}})
+        curr.* 
+            EXCLUDE (deleted, {{load_ts_column}}, {{hist_load_ts_column}})
+            {%- if effectivity_column %}
+            REPLACE (
+                '{{ run_started_at }}'::timestamp as {{effectivity_column}}
+            ) 
+            {%- endif %}
         , '{{ run_started_at }}'::timestamp as {{hist_load_ts_column}}
         , '{{ run_started_at }}'::timestamp as {{load_ts_column}}
         , true as deleted
