@@ -22,7 +22,8 @@
     high_watermark_test     = var('pdp.high_watermark_test', '>'),
     input_filter_expr       = 'true',
     history_filter_expr     = 'true',
-    order_by_expr           = none
+    order_by_expr           = none,
+    effectivity_column      = none
 ) -%}
 
 {% set hist_load_ts_column = var('pdp.hist_load_ts_column', 'HIST_LOAD_TS_UTC') %}
@@ -55,6 +56,11 @@ load_from_input as (
 delete_from_hist as (
     SELECT 
         curr.* EXCLUDE (deleted, {{load_ts_column}}, {{hist_load_ts_column}})
+            {%- if effectivity_column %}
+            REPLACE (
+                '{{ run_started_at }}'::timestamp as {{effectivity_column}}
+            ) 
+            {%- endif %}
         , '{{ run_started_at }}'::timestamp as {{hist_load_ts_column}}
         , '{{ run_started_at }}'::timestamp as {{load_ts_column}}
         , true as deleted
