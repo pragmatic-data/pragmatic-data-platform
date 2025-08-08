@@ -15,8 +15,9 @@ the other writing data from tables into files.
 By working on files they both need to setup the DB objects for File Formats and Stages into a DB and Schema.
 Also the operations to read or write the data are similar, both using the COPY INTO command.
 
-For this reason they are bundeld together under a common `in_out` folder.
-The library macros in the package and the ingestion/export macros in your projects.
+For this reason the library macros are bundeld together under a common `in_out` folder in this package 
+and we suggest to keep together the ingestion/export macros in your projects, grouped by source system, 
+under a common folder named `ingestion`, `export` or `in_out` depending if you have only ingestion, export or both.
 
 
 The Pragmatic Data Platform can easily ingest from and export to CSV and SEMI-STRUCUTRED files in internal or external stages, 
