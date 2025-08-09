@@ -4,7 +4,7 @@ The suggestion is to organize ingestion and export by sample source system.
 
 The integration tests follow this guideline and are organized in one base folder
 for each sample system, containing the system set-up, and one sub-folder each for 
-ingestin and export, containig macros to ingest/export the individual tables.
+ingestion and export, containing macros to ingest/export the individual tables.
 
 The suggested layout for each source system is:
 ```
