@@ -12,7 +12,7 @@
 
 {#%- set version_sort_expr = [hist_load_ts_column, load_ts_column, version_sort_column]|join(', ') %#}
 {%- set version_sort_expr = [version_sort_column, load_ts_column, hist_load_ts_column]|join(', ') %}
-{% if extra_sort_columns %}
+{% if extra_sort_columns is iterable %}
     {% if extra_sort_columns is string %}
         {% set extra_sort_expr = extra_sort_columns %}
     {% else %}
