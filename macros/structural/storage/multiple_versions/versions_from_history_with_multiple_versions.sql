@@ -6,11 +6,20 @@
     load_ts_column      = var('pdp.load_ts_column', 'INGESTION_TS_UTC'),
     hist_load_ts_column = var('pdp.hist_load_ts_column', 'HIST_LOAD_TS_UTC'),
     selection_expr      = '*',
-    history_filter_expr = 'true'
+    history_filter_expr = 'true',
+    extra_sort_columns  = none 
 ) -%}
 
 {#%- set version_sort_expr = [hist_load_ts_column, load_ts_column, version_sort_column]|join(', ') %#}
 {%- set version_sort_expr = [version_sort_column, load_ts_column, hist_load_ts_column]|join(', ') %}
+{% if extra_sort_columns is iterable %}
+    {% if extra_sort_columns is string %}
+        {% set extra_sort_expr = extra_sort_columns %}
+    {% else %}
+        {% set extra_sort_expr = extra_sort_columns|join(', ') %}
+    {% endif %}
+    {%- set version_sort_expr = version_sort_expr ~ ', ' ~ extra_sort_expr %}
+{% endif %}
 {%- set ingest_sort_expr = load_ts_column %}
 {%- set hist_load_sort_expr = hist_load_ts_column %}
 {% set end_of_time = var('pdp.end_of_time', '9999-09-09') %}
