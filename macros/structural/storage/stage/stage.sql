@@ -85,13 +85,18 @@ SELECT * FROM hashed
 SELECT * FROM with_default_record
 {% endif %}
 
-{%- if remove_duplicates and remove_duplicates['partition_by'] and remove_duplicates['order_by'] %}
+{%- if remove_duplicates and (remove_duplicates['partition_by'] or remove_duplicates['order_by']) %}
 {% set qualify_function = remove_duplicates['qualify_function'] if remove_duplicates['qualify_function'] else 'row_number()' %}
+{% set qualify_operator = remove_duplicates['qualify_operator'] if remove_duplicates['qualify_operator'] else '=' %}
 {% set qualify_value = remove_duplicates['qualify_value'] if remove_duplicates['qualify_value'] else '1' %}
 QUALIFY {{qualify_function}} OVER( 
-        PARTITION BY {%- for c in remove_duplicates['partition_by'] %} {{c}}{%- if not loop.last %}, {% endif %}{% endfor %}
+    {% if remove_duplicates['partition_by'] -%}
+        PARTITION BY {%- for c in remove_duplicates['partition_by'] %} {{c}}{%- if not loop.last %}, {% endif %}{% endfor %}        
+    {%- endif %}
+    {% if remove_duplicates['order_by'] -%}
         ORDER BY{%- for c in remove_duplicates['order_by'] %} {{c}}{%- if not loop.last %}, {% endif %}{% endfor %}
-    ) = {{qualify_value}}
+    {%- endif %}
+    ) {{qualify_operator}} {{qualify_value}}
 {%- endif -%}
 
 {%- endmacro %}

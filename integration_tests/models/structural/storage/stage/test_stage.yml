@@ -52,6 +52,19 @@ models:
          exclude_columns:
           - COLUMN_4     
 
+  - name: TEST_STAGE__LOCAL_CONFIG_REMOVE_DUPLICATES
+    columns:
+      - name: COLUMN_1
+        data_tests:
+          - accepted_values:
+              values: ['-1', '-2', 'aaa']
+          - dbt_utils.not_accepted_values:
+              values: ['bbb', 'ccc']
+      - name: COLUMN_2
+        data_tests:
+          - dbt_utils.not_accepted_values:
+              values: ['222', '333']
+
   - name: TEST_STAGE__EXTERNAL_CONFIG
     description: |
       AI Generated description:  
