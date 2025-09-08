@@ -1,6 +1,6 @@
 
 name: 'pragmatic_data'
-version: '0.4.7'
+version: '0.4.8'
 config-version: 2
 
 # This setting configures which "profile" dbt uses for this project.
