@@ -47,7 +47,7 @@ missing_keys as (
 default_key as (
     SELECT *
     FROM dim_base
-    WHERE {{dim_key_column}} = '{{dim_default_key_value}}'
+    WHERE {{dim_key_column}}::string = '{{dim_default_key_value}}'
 ),
 dim_missing_entries as (
     SELECT 
