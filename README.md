@@ -12,7 +12,7 @@ to pin to a specific version (suggested):
 ```
   # Pragmatic Data Platform package
   - git: https://github.com/pragmatic-data/pragmatic-data-platform.git
-    revision: 0.4.8
+    revision: 0.4.9
 ```
 
 or the following to stay on the latest, unexpected and unpredictable changes released to 'main' or any other branch you pick:
