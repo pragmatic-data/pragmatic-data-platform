@@ -14,6 +14,9 @@
 {% set ref_columns_to_exclude_w_key = ref_columns_to_exclude.copy() %}
 {% do ref_columns_to_exclude_w_key.append(dim_key_column) %}
 
+{%- for fact_model_key in fact_defs %}
+-- depends_on: {{ ref(fact_model_key['model']) }}
+{%- endfor -%}
 
 WITH
 dim_base as (
