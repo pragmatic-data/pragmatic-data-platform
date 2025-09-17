@@ -13,10 +13,6 @@
 -- depends_on: {{ "{{ ref('"~ fact_model_key['model'] ~ "') }}" }}
 {%- endfor %}
 
-/* ** Usage notes **
- * - The primary key has to be the first field in the underlying reference for the dimension
- */
-
 {% set ref_columns_to_exclude_w_key = ref_columns_to_exclude.copy() %}
 {% do ref_columns_to_exclude_w_key.append(dim_key_column) %}
 
@@ -57,9 +53,8 @@ dim_missing_entries as (
     SELECT 
         mk.FOREIGN_KEY,
         dk.* EXCLUDE( {{ ref_columns_to_exclude_w_key | join(', ') }} )
-        -- {#{ dbt_utils.star(dim_rel, relation_alias='dk', except=ref_columns_to_exclude + [dim_key_column]) }#}
     FROM missing_keys as mk 
-    join default_key dk -- on dk.{{dim_key_column}} = '{{dim_default_key_value}}'
+    join default_key dk
 ),
 
 dim as (
