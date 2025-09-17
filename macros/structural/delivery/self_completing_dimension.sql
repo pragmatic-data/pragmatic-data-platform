@@ -18,7 +18,7 @@
 -- depends_on: {{ dim_rel }}
 {%- for fact_model_key in fact_defs %}
 -- depends_on: {{ ref(fact_model_key['model']) }}
-{%- endfor -%}
+{%- endfor %}
 
 WITH
 dim_base as (
