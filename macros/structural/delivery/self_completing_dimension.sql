@@ -52,7 +52,7 @@ default_key as (
 dim_missing_entries as (
     SELECT 
         mk.FOREIGN_KEY,
-        dk.* EXCLUDE( {{ ref_columns_to_exclude_w_key | join(', ') }} )
+        dk.* EXCLUDE( {{ dim_key_column }} )
     FROM missing_keys as mk 
     join default_key dk
 ),
