@@ -3,10 +3,20 @@ Welcome to the Pragmatic Data Platform (PDP) package.
 
 This repository contains a set of macros that you can import 
 in your dbt projects to help you build a pragmatic data platform 
-as described in my books: "Data Engineering with dbt" and
-"Building A Pragmatic Data Platform with dbt and Snowflake".
+as described in my books: 
+1. "**Data Engineering with dbt**" published in 2023 and
+2. "**Building A Pragmatic Data Platform with dbt and Snowflake**" to be published towards the end of 2025.  
+  This book is co-authored with Jakob Brandel.
 
-## Installation
+To get a quick grasp of the Pragmatic Data Platform I suggest two quick readings:
+- the [Technical introduction to the PDP](TECH_INTRO.md) in this same folder.  
+  This is a compact, yet example driven, introduction to the key PDP concepts.
+- The [Sample Project Analysis page](https://raw.githack.com/pragmatic-data/stonks/main/Sample_Project_Analysis.html)
+  that is a bit more visual.  
+  It provides a good starting point to understand the Stonks project,
+  that is the sample project described in my second book.
+
+## PDP package installation
 TL;DR add the following into your `packages.yml` or `dependencies.yml` file 
 to pin to a specific version (suggested):
 ```
