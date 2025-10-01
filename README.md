@@ -19,15 +19,6 @@ to pin to a specific version (suggested):
     revision: 0.4.11
 ```
 
-or the following to stay on the latest, unexpected and unpredictable changes released to 'main' or any other branch you pick:
-```
-  # Pragmatic Data Platform package
-  - git: https://github.com/RobMcZag/pragmatic-data-platform.git
-    revision: main
-    warn-unpinned: false
-```
-NOTE: releases up to 0.2.0 used a trailing `v`, so you have to import them as `revision: v0.2.0`.  
-
 For the full explanation on how to install packages, please [read the dbt docs](https://docs.getdbt.com/docs/build/packages).
 
 ----
