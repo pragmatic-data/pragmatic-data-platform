@@ -27,13 +27,13 @@ For the full explanation on how to install packages, please [read the dbt docs](
 * [PDP package installation](#pdp-package-installation)
 * [PDP Quick Intro](#pragmatic-data-platform-quick-intro)
 * [Macros](#macros)
-    * [Ingestion and Export layers](#ingestion-and-export-layer-macros)
-    * [Storage layer](#storage-layer-macros)
-    * [Refined layer](#refined-layer-macros)
-    * [Delivery layer](#delivery-layer-macros)
+    * [Ingestion and Export macros](#ingestion-and-export-macros)
+    * [Storage layer macros](#storage-layer-macros)
+    * [Refined layer macros](#refined-layer-macros)
+    * [Delivery layer macros](#delivery-layer-macros)
     * [Generic Tests](#generic-tests)
 * [Pragmatic Data Platform Overview](#pragmatic-data-platform-overview)
-    * [Ingestion and Export layers](#ingestion-and-export-layer)
+    * [Ingestion and Export](#ingestion-and-export)
     * [Storage layer](#storage-layer)
     * [Refined layer](#refined-layer)
     * [Delivery layer](#delivery-layer)
@@ -54,7 +54,7 @@ To get a quick grasp of the Pragmatic Data Platform I suggest two quick readings
 
 The package provides macros that support the different layers of the Pragmatic Data Platform architecture.
 
-### Ingestion and Export Layer macros
+### Ingestion and Export macros
 
 These macros handle loading data from files into tables and exporting data from tables back to files, primarily using the `COPY INTO` command.
 
@@ -128,7 +128,7 @@ This layer serves specific, use-case-driven datasets (data marts) to end-users.
 
 The package also includes custom generic tests to enforce data quality and integrity across your PDP project.
 
-#### Ingestion validatioin tests
+#### Ingestion tests
 |Test| Description                                                                          |
 |---|--------------------------------------------------------------------------------------|
 |`test_all_files_from_stage`| Checks that all files in the stage have been ingested in the Landing Table.          |
@@ -160,7 +160,7 @@ The package also includes custom generic tests to enforce data quality and integ
 The Pragmatic Data Platform is a layered architecture designed for simplicity, maintainability, and scalability. 
 The macros in this package are built to support this structure.
 
-### Ingestion and Export layer
+### Ingestion and Export
 
 Ingestion and Export are specular operations on files, one loading data from files into tables and 
 the other writing data from tables into files.
