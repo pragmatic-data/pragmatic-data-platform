@@ -1,20 +1,14 @@
 # Pragmatic Data Platform
-Welcome to the Pragmatic Data Platform (PDP) package.
 
-This repository contains a set of macros that you can import 
-in your dbt projects to help you build a pragmatic data platform 
-as described in my books: 
+Welcome to the Pragmatic Data Platform (PDP) package. 🚀
+
+This repository contains a set of macros to help you build a 
+Pragmatic Data Platform following the principles described in my books: 
 1. "**Data Engineering with dbt**" published in 2023 and
 2. "**Building A Pragmatic Data Platform with dbt and Snowflake**" to be published towards the end of 2025.  
   This book is co-authored with Jakob Brandel.
 
-To get a quick grasp of the Pragmatic Data Platform I suggest two quick readings:
-- the [Technical introduction to the PDP](TECH_INTRO.md) in this same folder.  
-  This is a compact, yet example driven, introduction to the key PDP concepts.
-- The [Sample Project Analysis page](https://raw.githack.com/pragmatic-data/stonks/main/Sample_Project_Analysis.html)
-  that is a bit more visual.  
-  It provides a good starting point to understand the Stonks project,
-  that is the sample project described in my second book.
+----
 
 ## PDP package installation
 TL;DR add the following into your `packages.yml` or `dependencies.yml` file 
@@ -37,32 +31,133 @@ NOTE: releases up to 0.2.0 used a trailing `v`, so you have to import them as `r
 For the full explanation on how to install packages, please [read the dbt docs](https://docs.getdbt.com/docs/build/packages).
 
 ----
-Table of Contents
-* [Installation instructions](#installation)
-* [Ingestion and Export layers](#ingestion-and-export-layer)
-* [Storage layer](#storage-layer)
-* [Refined layer](#refined-layer)
-* [Delivery layer](#delivery-layer)
+
+## Table of Contents
+* [PDP package installation](#pdp-package-installation)
+* [PDP Quick Intro](#pragmatic-data-platform-quick-intro)
+* [Macros](#macros)
+    * [Ingestion and Export layers](#ingestion-and-export-layer-macros)
+    * [Storage layer](#storage-layer-macros)
+    * [Refined layer](#refined-layer-macros)
+    * [Delivery layer](#delivery-layer-macros)
+    * [Generic Tests](#generic-tests)
+* [Pragmatic Data Platform Overview](#pragmatic-data-platform-overview)
+    * [Ingestion and Export layers](#ingestion-and-export-layer)
+    * [Storage layer](#storage-layer)
+    * [Refined layer](#refined-layer)
+    * [Delivery layer](#delivery-layer)
 
 ----
 
-## Ingestion and Export layer
+## Pragmatic Data Platform Quick Intro
+To get a quick grasp of the Pragmatic Data Platform I suggest two quick readings:
+- the [Technical introduction to the PDP](TECH_INTRO.md) in this same folder.  
+  This is a compact, example driven, introduction to the key PDP concepts.
+- The [Sample Project Analysis page](https://raw.githack.com/pragmatic-data/stonks/main/Sample_Project_Analysis.html)
+   provides a good starting point to understand the Pragmatic Data Platform
+   by analyzing the Stonks project, that is the sample project described in the second book.
+
+----
+
+## Macros
+
+The package provides macros that support the different layers of the Pragmatic Data Platform architecture.
+
+### Ingestion and Export Layer macros
+
+These macros handle loading data from files into tables and exporting data from tables back to files, primarily using the `COPY INTO` command.
+
+|Macro|Description|Details|
+|---|---|---|
+|`inout_setup_sql()`|Generates the SQL to create File Formats and Stages.|[details](macros/in_out/README.md%23ingestion-and-export-setup)|
+|`run_csv_ingestion()`|A complete macro to orchestrate the ingestion of CSV files into a landing table.|[details](macros/in_out/ingestion_lib/README.md)|
+|`run_semi_structured_ingestion()`|A complete macro to orchestrate the ingestion of semi-structured files (like JSON or Parquet) into a landing table.|[details](macros/in_out/ingestion_lib/README.md)|
+|`run_table_export()`|Orchestrates the export of a table's data to files in a stage.|[details](macros/in_out/export_lib/README.md)|
+
+### Storage Layer macros
+
+The core of the PDP, this layer is responsible for efficiently storing source data, tracking its changes, and making it easily accessible.
+
+The key pattern to historize incoming source data uses the STG >> HIST >> VER models.
+
+#### STG - Staging data
+|Macro|Description|Details|
+|---|---|---|
+|`stage()`|**The primary macro for staging models.** It standardizes column naming, adapts data types, flattens structures, and generates key metadata like hash keys and hash diffs based on YAML configuration. This is where most of a developer's effort is focused.|[details](macros/structural/storage/stage/README.md)|
+
+#### HIST - Historization patterns 
+|Macro|Description|Details|
+|---|---|---|
+|`save_history()`|**For HIST models.** Implements an incremental logic to store only the latest version of an entity from the source if it's newer than the latest version already in the history table.|[details](macros/structural/storage/single_version/README.md)|
+|`save_history_with_deletion()`|An extension of `save_history` that also handles hard deletes by marking records as deleted in the history table.|[details](macros/structural/storage/single_version/README.md)|
+|`save_history_with_multiple_versions()`|**For HIST models.** Stores _all_ new versions of an entity found in the source input, allowing for the tracking of intra-batch changes.|[details](macros/structural/storage/multiple_versions/README.md)|
+
+#### VER - Version enrichment and current data helpers 
+|Macro|Description|Details|
+|---|---|---|
+|`versions_from_history_with_multiple_versions()`|**For SCD/VER views.** Builds a view on top of a `save_history_with_multiple_versions` table to provide versioning metadata.|[details](macros/structural/storage/multiple_versions/README.md)|
+|`current_from_history()`|**For SCD/VER views.** Builds a view on top of a `save_history` table to provide a Slowly Changing Dimension Type 2 representation, including `VALID_FROM`, `VALID_TO`, and `IS_CURRENT` columns.|[details](macros/structural/storage/single_version/README.md)|
+
+#### Helper macros
+|Macro|Description|Details|
+|---|---|---|
+|`pdp_hash()`|The macro used behind the scenes by `stage()` to generate consistent hash values. You can also use it directly.||
+|`make_hash_diff()`|A utility to create a hash diff from a list of columns.||
+
+### Refined Layer macros
+
+This is where you build reusable Business Concepts from the stable data in the Storage Layer.
+
+|Macro|Description|Details|
+|---|---|---|
+|`time_join()`|Simplifies the creation of time-based joins between entities that have a full history (SCD2 views), using a declarative YAML configuration.|[details](macros/structural/refined/README.md)|
+
+### Delivery Layer macros
+
+This layer serves specific, use-case-driven datasets (data marts) to end-users.
+
+|Macro|Description|Details|
+|---|---|---|
+|`self_completing_dimension()`|Creates a dimension that automatically adds default records for keys that exist in a fact table but are missing in the dimension's source business concept. This is a powerful pattern for handling late-arriving data efficiently.|[details](macros/structural/delivery/README.md)|
+
+### Generic Tests
+
+The package also includes custom generic tests to enforce data quality and integrity across your PDP project.
+
+#### PDP specific tests
+|Test|Description|
+|---|---|
+|`test_keys_from_landing`|Checks for key integrity from the landing layer.|
+|`test_has_sortable_versions`|Ensures that versions of an entity can be reliably sorted.|
+
+#### Generic use tests
+|Test|Description|
+|---|---|
+|`not_empty`|A simple test to ensure a model is not empty.|
+|`no_hash_collisions`|Checks for hash collisions on a given column.|
+|`has_default_key`|Used with self-completing dimensions to ensure a default key exists.|
+|`warn_on_multiple_default_key`|Warns if a self-completing dimension has more than one default key.|
+
+
+----
+
+## Pragmatic Data Platform Overview
+The Pragmatic Data Platform is a layered architecture designed for simplicity, maintainability, and scalability. 
+The macros in this package are built to support this structure.
+
+### Ingestion and Export layer
 
 Ingeston and Export are specular operations on files, one loading data from files into tables and 
 the other writing data from tables into files.
+By working on files they both need to setup the DB objects for File Formats and Stages in a Schema of a Database.  
+The operations to read or write the data are also similar, both using the `COPY INTO` command.
 
-By working on files they both need to setup the DB objects for File Formats and Stages into a DB and Schema.  
-The operations to read or write the data are also similar, both using the COPY INTO command.
-
-For this reason they are bundeld together under a common `in_out` folder.  
-The library macros in the package and the ingestion/export macros in your projects.
-
-General details on ingestion and extraction [in the in_out layer README](macros/in_out/README.md) 
+More details in the [ingestion and export README](macros/in_out/README.md) 
 or jump directly to one of the section:  
-* [Ingestion and Export layer README](macros/in_out/README.md)
 * [Ingestion and Export playbook](macros/in_out/README.md#ingestion-and-export-playbook)
 * [Ingestion and Export setup](macros/in_out/README.md#ingestion-and-export-setup)
 
+<!-- 
 For more details and examples of the **ingestion** specific process,
 please look at the [Ingestion layer README](macros/in_out/ingestion_lib/README.md) file in the `ingestion_lib` folder 
 and the [ingestion](integration_tests/models/in_out/ingestion_code_gen) folder in the Integration Tests.
@@ -70,11 +165,12 @@ and the [ingestion](integration_tests/models/in_out/ingestion_code_gen) folder i
 For more details and examples of the **export** specific process,
 please look at the [Export layer README](macros/in_out/export_lib/README.md) file in the `export_lib` folder 
 and the [export](integration_tests/models/in_out/system_A/export) folder in the Integration Tests.
+-->
 
-## Storage layer
-The storage layer of the Pragmatic Data Platform takes care of storing effectively the incoming source data, 
-with its changes, and making easily accessible in the most usable way possible.   
-It provides a stable foundational layer upon which you can build reliable Business Concepts 
+### Storage layer
+The storage layer takes care of storing effectively the incoming source data, 
+with its changes, and making it usable and easily accessible.   
+It provides a stable foundational layer upon which you can build reliable **Business Concepts** 
 to power your analytics and AI/ML workloads.  
 
 This is usually carried out in three steps for each entity to be stored:
@@ -129,20 +225,20 @@ the [storage layer README](macros/structural/storage/README.md) file.
 The following image recaps the flow from ingestion to storage and the action in each step:  
 <img src="assets/Ingestion and Storage LOWRES.png" alt="Ingestion and Storage" width="600">
 
-## Refined layer
+### Refined layer
 The refined layer is where Business Concepts are built from the stable data available in the storage layer.
 
 The key effort here is to clearly organize and name the models and folders, to build a modular system where 
 higher level concepts are built from lower ones, with each model ideally implementing only one business rule (per CTE) 
 and therefore having only one reason to change (per CTE).
 
-### Time joins
+#### Time joins
 At the moment the only macro in the refined layer is the `time_join()` macro that is used to simplify with YAML 
 the creation of time based joins for entities with full history versions.
 
 For more details, check the [README file](macros/structural/refined/README.md) for the Refined layer.
 
-## Delivery layer
+### Delivery layer
 The delivery layer is where we serve the dataset for each specific set of use cases.
 Usually we create one data mart for each set of related use cases, often we end up with one data mart per business unit.
 
@@ -152,7 +248,7 @@ base and composite facts. In most cases we just pick a subset of the available c
 Creating multiple data mart allows to personalize each one to make it easier to consume data by the target users.
 The personalization usually covers column naming, specific filtering and sometimes extra ad-hoc calculations.
 
-### Self completing dimensions
+#### Self completing dimensions
 At the moment the delivery layer provides a macro to create **self completing dimensions**, together with one example.  
 A self completing dimensions is like a normal dimension (SCD1 or 2) based on a Business Concept from the refined layer, 
 with the twist that it completes itself by adding a default record entry for each key existing in a connected fact, 
