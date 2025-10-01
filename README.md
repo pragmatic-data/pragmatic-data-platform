@@ -72,9 +72,13 @@ The core of the PDP, this layer is responsible for efficiently storing source da
 The key pattern to historize incoming source data is with the STG >> HIST >> VER models.
 
 #### STG - Staging data
-|Macro|Description|Details|
-|---|---|---|
-|`stage()`|**The primary macro for staging models.** It standardizes column naming, adapts data types, flattens structures, and generates key metadata like hash keys and hash diffs based on YAML configuration. This is where most of a developer's effort is focused.|[details](macros/structural/storage/stage/README.md)|
+|Macro| Description                                                                                                                                                                                                                                                   |Details|
+|---|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|---|
+|`stage()`| **The primary macro for staging models.** It standardizes column naming, adapts data types, flattens structures, and generates key metadata like hash keys and hash diffs based on YAML configuration. This is where most of a developer's effort is focused. |[details](macros/structural/storage/stage/README.md)|
+|`pdp_hash()`| The macro used behind the scenes by `stage()` to generate consistent hash values. You can use it directly, if you need to create hashed columns outside of the STG model.                                                                                     ||
+
+The `stage()` macro is where you adapt and make the source data usable without changing its meaning.  
+You also explicitly define the PK/FKs to be created with hashed columns (`HKEY`).  
 
 #### HIST - Historization patterns
 | Macro                                    | Description                                                                                                                                                                                |Details|
@@ -102,11 +106,6 @@ We suggest to create a VER model calling the `versions_from_history_with_multipl
 for each historical table, as it makes trivial to use and reference both historical and current data.
 
 The `current_from_history()` macro is retained for internal use and backward compatibility.
-
-#### Helper macros
-|Macro| Description                                                                                                                                                                   |Details|
-|---|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|---|
-|`pdp_hash()`| The macro used behind the scenes by `stage()` to generate consistent hash values. You can also use it directly if you need to create hashed columns outside of the STG model. ||
 
 ### Refined Layer macros
 
@@ -273,7 +272,7 @@ the dimension itself to create entries for the missing FKs.
 This way we avoid orphans by pointing to a default record created just-in-time while allowing the FK in the facts 
 to be properly used if/when an entry for the FK becomes available in the Business Concept table.
 
-For more details, check the [README file](macros/structural/delivery/README.md) for the Refined layer.
+For more details, check the [README file](macros/structural/delivery/README.md) for the Delivery layer.
 
 ----
 ### &#169;  Copyright 2022-2025 Roberto Zagni
