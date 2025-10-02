@@ -28,10 +28,15 @@ For the full explanation on how to install packages, please [read the dbt docs](
 * [PDP Quick Intro](#pragmatic-data-platform-quick-intro)
 * [Macros](#macros)
     * [Ingestion and Export macros](#ingestion-and-export-macros)
-    * [Storage layer macros](#storage-layer-macros)
-    * [Refined layer macros](#refined-layer-macros)
-    * [Delivery layer macros](#delivery-layer-macros)
-    * [Generic Tests](#generic-tests)
+        - [`inout_setup_sql()`](#inout_setup_sql)
+        - [`run_csv_ingestion()`](#run_csv_ingestion)
+        - [`run_semi_structured_ingestion()`](#run_semi_structured_ingestion)
+        - [`run_table_export()`](#run_table_export)
+        
+  * [Storage layer macros](#storage-layer-macros)
+  * [Refined layer macros](#refined-layer-macros)
+  * [Delivery layer macros](#delivery-layer-macros)
+  * [Generic Tests](#generic-tests)
 * [Pragmatic Data Platform Overview](#pragmatic-data-platform-overview)
     * [Ingestion and Export](#ingestion-and-export)
     * [Storage layer](#storage-layer)
@@ -60,10 +65,11 @@ These macros handle loading data from files into tables and exporting data from 
 
 |Macro| Description                                                                                                                    | Details                                                       |
 |---|--------------------------------------------------------------------------------------------------------------------------------|---------------------------------------------------------------|
-|`inout_setup_sql()`| Generates and executes the SQL to create File Formats and Stages.                                                              | [details](macros/in_out/README.md#ingestion-and-export-setup) |
-|`run_csv_ingestion()`| Orchestrate the ingestion of CSV files into a landing table, creating it if does not exists.                                   | [details](macros/in_out/ingestion_lib/README.md)              |
-|`run_semi_structured_ingestion()`| Orchestrate the ingestion of semi-structured files (like JSON or Parquet) into a landing table, creating it if does not exists. | [details](macros/in_out/ingestion_lib/README.md)              |
-|`run_table_export()`| Orchestrates the export of a table's data to files in a stage, using the selected File Format.                                 | [details](macros/in_out/export_lib/README.md)                 |
+|<a name="inout_setup_sql"></a>`inout_setup_sql()`| Generates and executes the SQL to create File Formats and Stages.                                                              | [details](macros/in_out/README.md#ingestion-and-export-setup) |
+|<a name="run_csv_ingestion"></a>`run_csv_ingestion()`| Orchestrate the ingestion of CSV files into a landing table, creating it if does not exists.                                   | [details](macros/in_out/ingestion_lib/README.md)              |
+|<a name="run_semi_structured_ingestion"></a>`run_semi_structured_ingestion()`| Orchestrate the ingestion of semi-structured files (like JSON or Parquet) into a landing table, creating it if does not exists. | [details](macros/in_out/ingestion_lib/README.md)              |
+|<a name="run_table_export"></a>`run_table_export()`| Orchestrates the export of a table's data to files in a stage, using the selected File Format.                                 | [details](macros/in_out/export_lib/README.md)                 |
+
 
 ### Storage Layer macros
 
