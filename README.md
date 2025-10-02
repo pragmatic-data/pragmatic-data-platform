@@ -25,7 +25,9 @@ For the full explanation on how to install packages, please [read the dbt docs](
 
 ## Table of Contents
 * [PDP package installation](#pdp-package-installation)
+
 * [PDP Quick Intro](#pragmatic-data-platform-quick-intro)
+
 * [Macros](#macros)
     * [Ingestion and Export macros](#ingestion-and-export-macros)
         - [`inout_setup_sql()`](#inout_setup_sql)
@@ -33,10 +35,44 @@ For the full explanation on how to install packages, please [read the dbt docs](
         - [`run_semi_structured_ingestion()`](#run_semi_structured_ingestion)
         - [`run_table_export()`](#run_table_export)
         
-  * [Storage layer macros](#storage-layer-macros)
-  * [Refined layer macros](#refined-layer-macros)
-  * [Delivery layer macros](#delivery-layer-macros)
-  * [Generic Tests](#generic-tests)
+    * [Storage layer macros](#storage-layer-macros)
+        - STG models
+          - [`stage()`](#stage)
+          - [`pdp_hash()`](#pdp_hash)
+        - HIST models - ingest multiple versions per batch
+          - [`save_history_with_multiple_versions()`](#save_history_with_multiple_versions)
+        - HIST models - ingest single version per batch
+          - [`save_history()`](#save_history)
+          - [`save_history_with_deletion()`](#save_history_with_deletion)
+          - [`save_history_with_deletion_from_list()`](#save_history_with_deletion_from_list)
+        - VER models
+          - [`versions_from_history_with_multiple_versions()`](#versions_from_history_with_multiple_versions)
+          - [`current_from_history()`](#current_from_history)
+
+    * [Refined layer macros](#refined-layer-macros)
+        - [`time_join()`](#time_join)
+
+    * [Delivery layer macros](#delivery-layer-macros)
+        - [`self_completing_dimension()`](#self_completing_dimension)
+
+* [Generic Tests](#generic-tests)
+  - [Ingestion Tests](#ingestion-tests)
+    - [`test_all_files_from_stage`](#test_all_files_from_stage)
+    - [`test_file_order_is_correct`](#test_file_order_is_correct)
+
+  - [Storage Layer Tests](#storage-layer-tests)
+    - [`test_keys_from_landing`](#test_keys_from_landing)
+    - [`test_keys_and_ts_from_landing`](#test_keys_and_ts_from_landing)
+    - [`test_has_sortable_versions`](#test_has_sortable_versions)
+    - [`no_hash_collisions`](#no_hash_collisions)
+
+  - [Delivery Layer Tests](#delivery-layer-tests)
+    - [`has_default_key`](#has_default_key)
+    - [`warn_on_multiple_default_key`](#warn_on_multiple_default_key)
+
+  - [Generic use tests](#generic-use-tests)
+    - [`not_empty`](#not_empty)
+
 * [Pragmatic Data Platform Overview](#pragmatic-data-platform-overview)
     * [Ingestion and Export](#ingestion-and-export)
     * [Storage layer](#storage-layer)
@@ -80,19 +116,19 @@ The key pattern to historize incoming source data is with the STG >> HIST >> VER
 #### STG - Staging data
 |Macro| Description                                                                                                                                                                                                                                                   |Details|
 |---|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|---|
-|`stage()`| **The primary macro for staging models.** It standardizes column naming, adapts data types, flattens structures, and generates key metadata like hash keys and hash diffs based on YAML configuration. This is where most of a developer's effort is focused. |[details](macros/structural/storage/stage/README.md)|
-|`pdp_hash()`| The macro used behind the scenes by `stage()` to generate consistent hash values. You can use it directly, if you need to create hashed columns outside of the STG model.                                                                                     ||
+|<a name="stage"></a>`stage()`| **The primary macro for staging models.** It standardizes column naming, adapts data types, flattens structures, and generates key metadata like hash keys and hash diffs based on YAML configuration. This is where most of a developer's effort is focused. |[details](macros/structural/storage/stage/README.md)|
+|<a name="pdp_hash"></a>`pdp_hash()`| The macro used behind the scenes by `stage()` to generate consistent hash values. You can use it directly, if you need to create hashed columns outside of the STG model.                                                                                     ||
 
 The `stage()` macro is where you adapt and make the source data usable without changing its meaning.  
-You also explicitly define the PK/FKs to be created with hashed columns (`HKEY`).  
+You also explicitly define the PK/FKs to be created with hashed columns (`HKEY`).
 
 #### HIST - Historization patterns
-| Macro                                    | Description                                                                                                                                                                                |Details|
-|------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|---|
-| `save_history _with_multiple_versions()` | Stores **_all_** new versions of an entity found in the source input, allowing for **multiple intra-batch changes**. Needs a sort for the incoming versions.                               |[details](macros/structural/storage/multiple_versions/README.md)|
-| `save_history()`                         | Stores the latest version of an entity from the source if it's different from the latest version already in the history table. Expects a **single** version per entity per batch. |[details](macros/structural/storage/single_version/README.md)|
-| `save_history _with_deletion()`          | An extension of `save_history` that also handles hard deletes in the input by marking records as deleted in the history table. Needs inputs with a full export.                            |[details](macros/structural/storage/single_version/README.md)|
-| `save_history _with_deletion _from_list()` | An extension of `save_history` that marks records as deleted in the history table. Requires a model providing the list of deleted entities by key.                                         |[details](macros/structural/storage/single_version/README.md)|
+| Macro                                                                                      | Description                                                                                                                                                                                |Details|
+|--------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|---|
+| <a name="save_history_with_multiple_versions"></a>`save_history _with_multiple_versions()` | Stores **_all_** new versions of an entity found in the source input, allowing for **multiple intra-batch changes**. Needs a sort for the incoming versions.                               |[details](macros/structural/storage/multiple_versions/README.md)|
+| <a name="save_history"></a>`save_history()`                                                | Stores the latest version of an entity from the source if it's different from the latest version already in the history table. Expects a **single** version per entity per batch. |[details](macros/structural/storage/single_version/README.md)|
+| <a name="save_history_with_deletion"></a>`save_history _with_deletion()`                   | An extension of `save_history` that also handles hard deletes in the input by marking records as deleted in the history table. Needs inputs with a full export.                            |[details](macros/structural/storage/single_version/README.md)|
+| <a name="save_history_with_deletion_from_list"></a>`save_history _with_deletion _from_list()`       | An extension of `save_history` that marks records as deleted in the history table. Requires a model providing the list of deleted entities by key.                                         |[details](macros/structural/storage/single_version/README.md)|
 
 The `save_history_with_multiple_versions()` allows to reload the full history from a Landing Table
 in a single step, correctly identifying and storing all the versions. This is the default pattern,
@@ -105,8 +141,8 @@ where you might also want to recognize deletions, and transactional workloads (h
 #### VER - Version enrichment and current data helpers 
 | Macro                                             | Description                                                                                                                                                                                                               |Details|
 |---------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|---|
-| `versions_from_history _with_multiple_versions()` | Builds a view on top of a `history` table to provide a Slowly Changing Dimension Type 2 representation, including `VALID_FROM`, `VALID_TO`, and `IS_CURRENT` columns. Includes also a stable version key (`DIM_SCD_KEY`). |[details](macros/structural/storage/multiple_versions/README.md)|
-| `current_from_history()`                          | Builds a CTE on top of a `history` table to provide the current (latest) version of each entity on the selected timeline.                                                                                                 |[details](macros/structural/storage/single_version/README.md)|
+|<a name="versions_from_history_with_multiple_versions"></a>`versions_from_history _with_multiple_versions()` | Builds a view on top of a `history` table to provide a Slowly Changing Dimension Type 2 representation, including `VALID_FROM`, `VALID_TO`, and `IS_CURRENT` columns. Includes also a stable version key (`DIM_SCD_KEY`). |[details](macros/structural/storage/multiple_versions/README.md)|
+|<a name="current_from_history"></a>`current_from_history()`                          | Builds a CTE on top of a `history` table to provide the current (latest) version of each entity on the selected timeline.                                                                                                 |[details](macros/structural/storage/single_version/README.md)|
 
 We suggest to create a VER model calling the `versions_from_history_with_multiple_versions()` macro
 for each historical table, as it makes trivial to use and reference both historical and current data.
@@ -119,7 +155,7 @@ This is where you build reusable Business Concepts from the stable data in the S
 
 |Macro|Description|Details|
 |---|---|---|
-|`time_join()`|Simplifies the creation of time-based joins between entities that have a full history, using a declarative YAML configuration.|[details](macros/structural/refined/README.md)|
+|<a name="time_join"></a>`time_join()`|Simplifies the creation of time-based joins between entities that have a full history, using a declarative YAML configuration.|[details](macros/structural/refined/README.md)|
 
 ### Delivery Layer macros
 
@@ -127,36 +163,36 @@ This layer serves specific, use-case-driven datasets (data marts) to end-users.
 
 | Macro                          |Description|Details|
 |--------------------------------|---|---|
-| `self_completing _dimension()` |Creates a dimension that automatically adds default records for keys that exist in a fact table but are missing in the dimension's source business concept. This is a powerful pattern for handling late-arriving data efficiently.|[details](macros/structural/delivery/README.md)|
+|<a name="self_completing_dimension"></a>`self_completing _dimension()` |Creates a dimension that automatically adds default records for keys that exist in a fact table but are missing in the dimension's source business concept. This is a powerful pattern for handling late-arriving data efficiently.|[details](macros/structural/delivery/README.md)|
 
-### Generic Tests
+## Generic Tests
 
 The package also includes custom generic tests to enforce data quality and integrity across your PDP project.
 
-#### Ingestion tests
+### Ingestion tests
 |Test| Description                                                                          |
 |---|--------------------------------------------------------------------------------------|
-|`test_all_files_from_stage`| Checks that all files in the stage have been ingested in the Landing Table.          |
-|`test_file_order_is_correct`| Validates that the files have been loaded in the Landing Table in the correct order. |
+|<a name="test_all_files_from_stage"></a>`test_all_files_from_stage`| Checks that all files in the stage have been ingested in the Landing Table.          |
+|<a name="test_file_order_is_correct"></a>`test_file_order_is_correct`| Validates that the files have been loaded in the Landing Table in the correct order. |
 
-#### Storage layer tests
+### Storage layer tests
 |Test| Description                                                                                                                    |
 |---|--------------------------------------------------------------------------------------------------------------------------------|
-|`test_keys_from_landing`| Checks that all the keys from the landing layer exist in the history table.                                                    |
-|`test_keys_and_ts_from_landing`| Checks that all the keys from the landing layer exist in the history table, with the latest ingestion timestamps matching.     |
-|`test_has_sortable_versions`| Ensures that versions of an entity can be reliably sorted. Used to validate the use of `save_history_with_multiple_versions()` |
-|`no_hash_collisions`| Checks for hash collisions on a given column. Usually applied on the history tables.                                           |
+|<a name="test_keys_from_landing"></a>`test_keys_from_landing`| Checks that all the keys from the landing layer exist in the history table.                                                    |
+|<a name="test_keys_and_ts_from_landing"></a>`test_keys_and_ts_from_landing`| Checks that all the keys from the landing layer exist in the history table, with the latest ingestion timestamps matching.     |
+|<a name="test_has_sortable_versions"></a>`test_has_sortable_versions`| Ensures that versions of an entity can be reliably sorted. Used to validate the use of `save_history_with_multiple_versions()` |
+|<a name="no_hash_collisions"></a>`no_hash_collisions`| Checks for hash collisions on a given column. Usually applied on the history tables.                                           |
 
-#### Delivery layer tests
+### Delivery layer tests
 |Test|Description|
 |---|---|
-|`has_default_key`|Used with dimensions to ensure a default key exists.|
-|`warn_on_multiple_default_key`|Warns if a dimension has more than one default key.|
+|<a name="has_default_key"></a>`has_default_key`|Used with dimensions to ensure a default key exists.|
+|<a name="warn_on_multiple_default_key"></a>`warn_on_multiple_default_key`|Warns if a dimension has more than one default key.|
 
-#### Generic use tests
+### Generic use tests
 |Test| Description                                                                          |
 |---|--------------------------------------------------------------------------------------|
-|`not_empty`| A simple test to ensure a model is not empty. |
+|<a name="not_empty"></a>`not_empty`| A simple test to ensure a model is not empty. |
 
 
 ----
