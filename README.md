@@ -3,7 +3,7 @@
 Welcome to the Pragmatic Data Platform (PDP) package. 🚀
 
 This repository contains a set of macros to help you build a 
-Pragmatic Data Platform following the principles described in my books: 
+Pragmatic Data Platform following the principles described in the books: 
 1. "**Data Engineering with dbt**" published in 2023 and
 2. "**Building A Pragmatic Data Platform with dbt and Snowflake**" to be published towards the end of 2025.  
   This book is co-authored with Jakob Brandel.
@@ -12,7 +12,7 @@ Pragmatic Data Platform following the principles described in my books:
 
 ## PDP package installation
 TL;DR add the following into your `packages.yml` or `dependencies.yml` file 
-to pin to a specific version (suggested):
+to pin a specific version:
 ```
   # Pragmatic Data Platform package
   - git: https://github.com/pragmatic-data/pragmatic-data-platform.git
