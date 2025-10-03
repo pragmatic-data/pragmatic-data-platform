@@ -1,6 +1,10 @@
-# Pragmatic Data Platform: A Technical Introduction
+# Pragmatic Data Platform: Quick Start!
 
-This document provides a practical, terse guide for experienced data engineers to build a data platform following the Pragmatic Data Platform (PDP) principles. It assumes proficiency with dbt, SQL, and general data warehousing concepts. The focus is on the implementation patterns and the use of the PDP dbt package.
+This document provides a practical, terse guide for data engineers to build a 
+data platform following the Pragmatic Data Platform (PDP) principles. 
+
+It assumes knowledge of dbt, SQL, and general data warehousing concepts. 
+The focus is on the implementation patterns and the use of the PDP dbt package.
 
 ## 1. Core Philosophy
 
@@ -8,7 +12,7 @@ The PDP approach prioritizes simplicity, resilience to upstream changes, and dev
 
 1. **A Layered Architecture:** Strict separation of concerns between data ingestion, storage, business logic, and data delivery.
 
-2. **A Resilient Storage Layer:** All platform state (current and historical) is managed in the Storage layer. This layer absorbs upstream changes, minimizing rework in downstream models. The `STG >> HIST >> VER` model pattern is a cornerstone of this layer's resilience.
+2. **A Resilient Storage Layer:** All platform state (current and historical) is managed in the Storage layer. This layer absorbs upstream changes, minimizing rework in downstream models. The `STG >> HIST >> VER` model pattern is the cornerstone of this layer's resilience.
 
 3. **Pattern & Configuration-Driven Development:** reliance on logical and code patterns powered by macros and YAML configuration to define transformations, eliminating boilerplate SQL, reducing cognitive load and enforcing consistency.
 
@@ -23,15 +27,14 @@ The architecture consists of the optional ingestion layer and three core layers 
 
 - `ingestion` (optional, built in YAML, deployed with dbt macros)
 
-- `01_storage` (built dbt models, uses YAML to configure the STG models)
+- `01_storage` (dbt models, uses YAML to configure the STG models)
 
-- `02_refined` (built dbt models)
+- `02_refined` (dbt models)
 
-- `03_delivery` (built dbt models)
+- `03_delivery` (dbt models)
 
 
-We will build a set of models for a single data entity through all layers, using examples from the stonks sample project.
-
+In this introduction we will build a set of models for a single data entity through all layers, using examples from the stonks sample project.  
 You can find the sample project on GitHub: https://github.com/pragmatic-data/stonks.
 
 ## 2. The Ingestion Layer (Optional)
@@ -46,14 +49,19 @@ The process is typically two-fold:
 
 2. **Landing Table ingestion**: Once the infrastructure is created, a LT specific configuration is created in YAML and used by a macro to execute the `COPY INTO` commands, loading data from the external stage into the corresponding landing table. This operation can be scheduled or triggered and incrementally loads only new files, working in a simple and efficient way.
 
+Find out the details in the [Ingestion and Export README](macros/in_out/README.md).
 
 ## 3. The Storage Layer: The Platform's Foundation
 
-The Storage Layer is the foundational component of the PDP. It takes data from landing tables and transforms it into a clean, historized, and reliable format. For each source entity it applies a consistent pattern using three model types: Staging (`STG_`), History (`HIST_`), and Current Version (`VER_`).
+The Storage Layer is the foundational component of the PDP.  
+It takes data from landing tables and transforms it into a clean, historized, 
+and reliable format. For each source entity it applies a consistent pattern using 
+three model types: Staging (`STG_`), History (`HIST_`), and Versioning (`VER_`).
 
 ### Step 3.1: Define the Source
 
-First, define your raw data source in a `.yml` file within your models directory. This is standard dbt practice.
+First, define your raw data source in a `.yml` file within your models directory. 
+This is standard dbt practice to make external data reachable by dbt models.
 
 **File: `models/01_storage/interactive_brokers/source_interactive_brokers.yml`**
 
@@ -71,7 +79,13 @@ sources:
 
 ### Step 3.2: The Staging Model (`STG_`)
 
-The staging model's only role is to clean, standardize, and prepare a source entity for historization. The configuration that defines its operation is included directly in the SQL file for clarity and simplicity. It’s possible to put it in `.yml` files when the reuse of definitions provides enough value to offset the added complexity and diminished readability.
+The staging model's only role is to clean, standardize, and prepare a source entity 
+for historization. 
+
+The configuration that defines its operation is included directly in the SQL file 
+for clarity and simplicity. It’s possible to put it in `.yml` files when the reuse 
+of definitions provides enough value to offset the added complexity and diminished 
+readability.
 
 **File: `models/01_storage/interactive_brokers/cash_transactions/STG_IB_CASH_TRANSACTIONS.sql`**
 
@@ -162,24 +176,41 @@ hashed_columns:
 ) }}
 ```
 
-**Key Actions of `pdp.stage`:**
+**Key Actions of the `pdp.stage` macro:**
 
 - **Column Selection & Renaming:** Selects and renames columns (`DESCRIPTION` -> `TX_DESCRIPTION`).
 
 - **Create new calculated columns**: Define new columns, usually from existing ones (`Transaction_Category`) or static data ( `BROKER_CODE`)
 
-- **Data Typing:** Casts all columns to the specified `datatype`.
+- **Data Typing:** Casts all columns to the correct `datatype`.
+
+- **Unit conversion:** Concerts the data to the correct representation,
+  be it a different`unit` or `timezone`.
+
+- **Nested object extraction:** Extracts the desired columns from nested 
+  semi-structured objects to be accessed like normal SQL columns.
 
 - **Metadata Columns:** Automatically adds ingestion metadata (`FROM_FILE`, `INGESTION_TS_UTC`, `FILE_ROW_NUMBER`, etc.).
 
-- **Business Key Hash (`<ENTITY>_HKEY`):** Creates a binary hash of the columns listed under `keys`. This uniquely identifies an entity instance.
+- **Business Key Hashes (`..._HKEY`):** Creates a binary hash of the columns listed under each key name. 
+  This is used for the primary key (`<ENTITY>_HKEY`) listing the BK columns that uniquely identifies an entity instance,
+  and for the foreign keys (`<OTHER_ENTITY>_HKEY`) that are connected to the entity being stored.
 
-- **Hash Diff (`<ENTITY>_HDIFF`):** Creates an binary hash of all other columns (excluding those in `hash_diff_exclude`). This is used to detect changes in the record's attributes.
+- **Hash Diff (`<ENTITY>_HDIFF`):** Creates a binary hash of all the columns that count as a change. 
+  It includes the business key. This is used to detect changes in the record's attributes, 
+  generating a new version of the instance.
 
+In short, the STG macro takes the source data and adjusts it to be easy to use downstream,
+without changing the meaning of the data.
 
 ### Step 3.3: The History Model (`HIST_`)
 
-This is a pure, insert-only ledger. Its sole purpose is to capture every unique version (`HDIFF`) of a record as it arrives, along with a timestamp of when that version was first recorded. It contains no validity logic and existing rows are never updated. It is the immutable source of truth for all historical data. This model **must** be materialized as `incremental`.
+This is a pure, insert-only ledger.  
+Its sole purpose is to capture every unique version (identified by the `HDIFF`) 
+of a record as it arrives, along with a timestamp of when that version was first recorded. 
+It contains no validity logic and existing rows are never updated. 
+It is the immutable source of truth for all historical data. 
+This model **must** be materialized as `incremental`.
 
 **File: `models/01_storage/interactive_brokers/cash_transactions/HIST_IB_CASH_TRANSACTIONS.sql`**
 
@@ -199,12 +230,17 @@ This is a pure, insert-only ledger. Its sole purpose is to capture every unique 
 
 - **Insert-Only Pattern**: On subsequent runs, it compares the `HDIFF` of incoming records from the `STG` model against all records in the `HIST` model for a matching `HKEY`. It sorts the versions for a single entity to properly evaluate the evolution of changes.
 
-- **New Version Detection**: If a new, unseen `HDIFF` for an entity is found, it inserts this new version into the history table.
+- **New Version Detection**: If a new, different `HDIFF` from the last version of an 
+  entity, or for a new entity instance is found, it inserts this new version 
+  into the history table.
 
 
 ### Step 3.4: The Version Model (`VER_`)
 
-This is the "intelligence" layer built on top of the raw history. It enriches the historical data with temporal logic, making it easy for downstream models to consume. If you need the current data, you can simply filter using `WHERE IS_CURRENT`.
+This is the "intelligence" layer built on top of the raw history.  
+It enriches the historical data with temporal logic, making it easy for 
+downstream models to consume. If you need the current data, you can simply 
+filter using `WHERE IS_CURRENT` out of the VER model.
 
 **File: `models/01_storage/interactive_brokers/cash_transactions/VER_IB_CASH_TRANSACTIONS.sql`**
 
@@ -220,18 +256,28 @@ This is the "intelligence" layer built on top of the raw history. It enriches th
 
 **Key Actions of `pdp.versions_from_history...`:**
 
-- **Calculate Validity**: It generates the `VALID_FROM` and `VALID_TO` columns for each historical record in the history table.
+- **Calculate Validity**: It generates the `VALID_FROM` and `VALID_TO` columns 
+  for each historical record in the history table.
 
 - **Create `SCD_KEY`**: It generates the version-specific `SCD_KEY`.
+  This allows to identify exactly that specific version in the whole history table.
 
-- **Flag Current Version**: It adds a boolean `IS_CURRENT` column, making it simple for downstream models to get the latest data.
+- **Flag Current Version**: It adds a boolean `IS_CURRENT` column, 
+  making it simple for downstream models to get the latest data.
 
-- **Expose Full History**: The resulting model contains the complete history of an entity, now enriched with columns that make querying for specific points in time, or for just the current state, simple and efficient.
+- **Expose Full History**: The resulting model contains the complete history of an entity, 
+  now enriched with columns that make querying for specific points in time, 
+  or for just the current state, simple and efficient.
+  The output, for dimensional entities, is a ready to use SCD2 table.
 
 
 ### Step 3.5: Documentation and Testing
 
-We usually have one `.yml` file for all three models of the `STG >> HIST >> VER` pattern to highlight their tight integration and define tests and documentation in one single place. The accompanying `.yml` file is used in the usual dbt style, in the example providing descriptions and tests.
+We usually have one `.yml` file for all three models of the `STG >> HIST >> VER` pattern 
+to highlight their tight integration and define tests and documentation in one single place. 
+
+The accompanying `.yml` file is used in the usual dbt style, 
+providing descriptions and tests.
 
 **File: `models/01_storage/interactive_brokers/cash_transactions/ib_cash_transactions.yml`**
 
@@ -263,7 +309,11 @@ models:
 
 ## 4. The Refined Layer: Applying Business Logic
 
-The Refined Layer is the real heart of your data platform. It's where you shift from simply storing data to incrementally building reusable business concepts and applying complex logic. Models in this layer integrate data from different sources, creating a unified and well-governed view of business entities and processes. This is where the core business value is generated.
+The Refined Layer is the real heart of your data platform.  
+It's where you shift from simply storing data to incrementally building reusable 
+business concepts and applying complex logic. Models in this layer integrate data 
+from different sources, creating a unified and well-governed view of business 
+entities and processes. This is where the core business value is generated.
 
 **File: `models/02_refined/interactive_brokers/positions_calculated/REF_IB_POSITIONS_TRANSACTIONS.sql`**
 
@@ -298,11 +348,18 @@ SELECT * FROM all_transactions
 
 ## 5. The Delivery Layer: Preparing Data for Consumers
 
-The Delivery Layer is the final stage, where data is prepared for specific consumers and use cases. It acts as the "shop front" of the data platform, providing clean, reliable, and easy-to-use data products. These models are typically lightweight views or tables that act as stable interfaces, enforcing clear data contracts with their users.
+The Delivery Layer is the final stage, where data is prepared for specific consumers 
+and use cases. It acts as the "shop front" of the data platform, providing clean, 
+reliable, and easy-to-use data products. These models are typically lightweight 
+views or tables that act as stable interfaces, enforcing clear data contracts 
+with their users.
 
 ### Step 5.1: Dimensions (`DIM_`)
 
-Dimensions provide descriptive context. They are typically kept simple, selecting from a refined model.
+Dimensions provide descriptive context. 
+
+They are typically simple, but often quite wide, selecting from a refined model.
+Try to limit the interface you expose to what is really needed by the users.
 
 **File: `models/03_delivery/marts/portfolio_analysis/DIM_PORTFOLIOS.sql`**
 
@@ -313,7 +370,12 @@ FROM {{ ref('REF_IB_PORTFOLIOS') }}
 
 ### Step 5.2: Facts (`FACT_`)
 
-Fact tables contain quantitative measures and foreign keys to dimension tables. They are also kept simple when they represent business concepts, as they can select from the REF model built for the concept. We can also build composite facts for the specific need of one data mart by joining base facts, dimensions and mapping tables.
+Fact tables contain quantitative measures and foreign keys to dimension tables. 
+
+When they represent business concepts they are also built with simple SQL, 
+as they can just select the desired columns from the REF model built for the concept. 
+We can also build more complex, composite facts for the specific need of one data mart 
+by joining base facts, dimensions and mapping tables.
 
 **File: `models/03_delivery/marts/portfolio_analysis/FACT_POSITION_TRANSACTIONS.sql`**
 
@@ -324,15 +386,21 @@ FROM {{ ref('REF_IB_POSITIONS_TRANSACTIONS') }}
 
 ### Step 5.3: Reports and Advanced Use Cases (`RPT_`)
 
-Beyond traditional star schemas, the Delivery layer serves a wide range of consumers. `RPT_` models are a common pattern for creating pre-aggregated or denormalized tables optimized for a specific BI dashboard or report.
+Beyond traditional star schemas, the Delivery layer serves a wide range of consumers.
+`RPT_` models are a common pattern for creating pre-aggregated or denormalized tables 
+optimized for a specific BI dashboard or report.
 
-This layer is also critical for more advanced use cases, providing trusted, well-structured data for:
+This layer is also critical for more advanced use cases, providing trusted, 
+well-structured data for:
 
-- **User-Facing Applications:** Powering analytics embedded directly within customer portals or internal applications.
+- **User-Facing Applications:** Powering analytics embedded directly within customer 
+  portals or internal applications.
 
-- **AI/ML Pipelines:** Serving clean, documented feature sets for training and running machine learning models.
+- **AI/ML Pipelines:** Serving clean, documented feature sets for training and 
+  running machine learning models.
 
-- **Reverse ETL / Feedback Loops:** Sending enriched data back into operational systems (like a CRM or marketing platform) to drive business actions.
+- **Reverse ETL / Feedback Loops:** Sending enriched data back into operational 
+  systems (like a CRM or marketing platform) to drive business actions.
 
 
 **File: `models/03_delivery/apps/current_positions/RPT_POSITIONS_CURRENT_VALUES.sql`**
@@ -365,7 +433,9 @@ WHERE
 
 ## 6. Identity Management and Changes
 
-The PDP relies on a set of consistent, hashed keys to manage entity identity and track changes over time. This system is fundamental to the resilience of the Storage Layer and the clarity of the Delivery Layer.
+The PDP relies on a set of consistent, hashed keys to manage entity identity 
+and track changes over time. This system is fundamental to the resilience of 
+the Storage Layer and the clarity of the Delivery Layer.
 
 ### 6.1 Core Keys for Tracking Entities and Changes
 

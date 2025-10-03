@@ -4,9 +4,9 @@ Welcome to the Pragmatic Data Platform (PDP) package. 🚀
 
 This repository contains a set of macros to help you build a 
 Pragmatic Data Platform following the principles described in the books: 
-1. "**Data Engineering with dbt**" published in 2023 and
+1. "**Data Engineering with dbt**" published in 2023 by Roberto Zagni and
 2. "**Building A Pragmatic Data Platform with dbt and Snowflake**" to be published towards the end of 2025.  
-  This book is co-authored with Jakob Brandel.
+  This book is co-authored by Roberto Zagni and Jakob Brandel.
 
 ----
 
@@ -83,21 +83,25 @@ For the full explanation on how to install packages, please [read the dbt docs](
 
 ## Pragmatic Data Platform Quick Intro
 To get a quick grasp of the Pragmatic Data Platform I suggest two quick readings:
-- the [Technical introduction to the PDP](TECH_INTRO.md) in this same folder.  
-  This is a compact, example driven, introduction to the key PDP concepts.
+- the [Quick Start introduction to the PDP](QUICK_START.md) in this same folder.  
+  This is a compact, example driven, introduction to the PDP concepts and macros.
+
+
 - The [STONKS Sample Project Analysis](https://raw.githack.com/pragmatic-data/stonks/main/Sample_Project_Analysis.html).  
-   Provides a good starting point to understand the Pragmatic Data Platform
-   by analyzing the Stonks project, the **extensive sample project** described in the second book.
+  Provides a good starting point to understand the Pragmatic Data Platform in more detail,
+  by analyzing the Stonks project, the **extensive sample project** described in the second book.
 
 ----
 
 ## Macros
 
-The package provides macros that support the different layers of the Pragmatic Data Platform architecture.
+The package provides macros that support the development of the different layers 
+of the Pragmatic Data Platform Architecture.
 
 ### Ingestion and Export macros
 
-These macros handle loading data from files into tables and exporting data from tables back to files, primarily using the `COPY INTO` command.
+These macros handle loading data from files into tables and exporting data 
+from tables back to files, primarily using the `COPY INTO` command.
 
 |Macro| Description                                                                                                                    | Details                                                       |
 |---|--------------------------------------------------------------------------------------------------------------------------------|---------------------------------------------------------------|
@@ -106,12 +110,17 @@ These macros handle loading data from files into tables and exporting data from 
 |<a name="run_semi_structured_ingestion"></a>`run_semi_structured_ingestion()`| Orchestrate the ingestion of semi-structured files (like JSON or Parquet) into a landing table, creating it if does not exists. | [details](macros/in_out/ingestion_lib/README.md)              |
 |<a name="run_table_export"></a>`run_table_export()`| Orchestrates the export of a table's data to files in a stage, using the selected File Format.                                 | [details](macros/in_out/export_lib/README.md)                 |
 
+For a deeper understanding of the Ingestion and Export go to the 
+[Ingestion and Export README](macros/in_out/README.md).
 
 ### Storage Layer macros
 
-The core of the PDP, this layer is responsible for efficiently storing source data, tracking its changes, and making it easily accessible.
+The core of the PDP, this layer is responsible for efficiently storing source data, 
+tracking its changes, and making it easily accessible.
 
-The key pattern to historize incoming source data is with the STG >> HIST >> VER models.
+The key pattern to historize incoming source data uses **the STG >> HIST >> VER model pipeline**.
+One model connect to the next and no join are allowed, so that data stays auditable, and 
+it is possible to track changes properly.
 
 #### STG - Staging data
 |Macro| Description                                                                                                                                                                                                                                                   |Details|
@@ -121,6 +130,9 @@ The key pattern to historize incoming source data is with the STG >> HIST >> VER
 
 The `stage()` macro is where you adapt and make the source data usable without changing its meaning.  
 You also explicitly define the PK/FKs to be created with hashed columns (`HKEY`).
+
+For a deeper understanding of the Staging models go to the
+[Stage README](macros/structural/storage/stage/README.md).
 
 #### HIST - Historization patterns
 | Macro                                                                                      | Description                                                                                                                                                                                |Details|

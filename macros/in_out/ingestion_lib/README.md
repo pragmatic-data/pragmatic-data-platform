@@ -1,5 +1,5 @@
-# PDP Ingestion layer 
-Welcome to the **ingestion layer** of the Pragmatic Data Platform (PDP) package.
+# PDP Ingestion 
+Welcome to the **ingestion macros** of the Pragmatic Data Platform (PDP) package.
 
 **Table of Contents**
 - [General ingestion and export process](../README.md#general-ingestion-process) in the in_out folder.
