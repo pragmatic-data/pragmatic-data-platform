@@ -95,15 +95,15 @@ It handles table creation and the `COPY INTO` operation.
 ```YAML
 {%- set ingestion_cfg -%}
 ingestion:
-   pattern: 'cash_transactions/.*CashTransactions.*[.]csv.gz'   # **1** 
+   pattern: 'cash_transactions/.*CashTransactions.*[.]csv.gz'   # ** 1 ** 
    stage_name: "{{ get_SOURCE_XXX_ingestion_stage_name() }}"
    format_name:
 
 landing_table:
    db_name:     "{{ get_SOURCE_XXX_ingestion_db_name() }}"
    schema_name: "{{ get_SOURCE_XXX_ingestion_schema_name() }}"
-   table_name:  Cash_Transactions   # **2**
-   columns:                         # **3**
+   table_name:  Cash_Transactions   # ** 2 **
+   columns:                         # ** 3 **
       - ClientAccountID                       #-- No data type specification means TEXT
       - AccountAlias
       - FXRateToBase: Number(38, 5)           #-- with data type specification 
@@ -113,15 +113,15 @@ landing_table:
 {%- set cfg = fromyaml(ingestion_cfg) -%}
 
 {{ pragmatic_data.run_csv_ingestion(
-    landing_table_dict = landing_config,
-    ingestion_dict     = ingest_config,
-    recreate_table     = true
+    landing_table_dict = cfg.landing_table,
+    ingestion_dict     = cfg.ingestion,
+    recreate_table     = false
 ) }}
 ```
 The above example illustrates how you can easily provide the required parameter to ingest data in a landing
 table in a declarative way using YAML.
 
-The example also highlighta that most values can be set once and for all the Landing Tables of a source system,
+The example also highlights that most values can be set once and for all the Landing Tables of a source system,
 using the macros created in the setup, with **only THREE parameters** having to be **specific for each LT**:
 - the name of the landing table itself
 - the pattern to select the files to be loaded in the LT
@@ -135,103 +135,133 @@ The following example also illustrates how you can pass columns with and without
     'db_name': 'my_db',
     'schema_name': 'my_schema',
     'table_name': 'my_landing_table',
-    'columns': [ 'col1', 'col2', {'col3': 'NUMBER(38, 5)'}]    #-- list of column names (=> TEXT) or dicts {name: type} 
+    'columns': [ 'col1', 'col2', {'col3': 'NUMBER(38, 5)'}]    
+    #-- columns is a list of column names (data type = TEXT) or dicts {col_name: data_type} 
 } %}
 ```
 
 For other examples, including the legacy SQL based ingestion macros, 
-refer to the [Landing Tables Macros documentation](#ingestion_lib/README.md%23landing-tables-macros).
+refer to the [Landing Tables Macros documentation](ingestion_lib/README.md#landing-tables-macros).
 
 ---
 
 ### `run_semi_structured_ingestion()`
 
-This macro is similar to `run_csv_ingestion` but is designed for semi-structured data like JSON or Parquet. It includes logic to handle field extraction during the `COPY INTO` process.
+This macro is similar to `run_csv_ingestion` but is designed for semi-structured data like JSON or Parquet.  
+It handles table creation and the `COPY INTO` operation, but unlike the CSV version, it requires you to 
+provide the expressions to handle field extraction during the `COPY INTO` process.
 
 **Arguments:**
 
-- `landing_table_dict` (dict): A dictionary describing the target landing table.
+- `landing_table_dict` (dict): A dictionary describing the target landing table.  
+  Exactly the same as in [`run_csv_ingestion()`](#run_csv_ingestion).
 
-- `ingestion_dict` (dict): A dictionary containing ingestion parameters, including `field_expressions` to map data from the staged files to the table columns.
+- `ingestion_dict` (dict): A dictionary containing ingestion parameters. Similar to its CSV equivalent, 
+  but must include `field_expressions` to map data from the semi-structured files to the table columns.
 
-- `recreate_table` (bool, optional): If `true`, the landing table will be dropped and recreated. Defaults to `false`.
+- `recreate_table` (bool, optional): If `true`, the landing table will be dropped and recreated.   
+  Defaults to `false`. Exactly the same as in [`run_csv_ingestion()`](#run_csv_ingestion).
 
 
 **Usage:**
 
-SQL
+```YAML
+{%- set ingestion_cfg -%}
+ingestion:
+   pattern: 'cash_transactions/.*CashTransactions.*[.]csv.gz'   # ** 1 ** 
+   stage_name: "{{ get_SOURCE_XXX_ingestion_stage_name() }}"
+   format_name:
+   field_expressions:   # ** 4 **
+      # - src_data: $1     #-- This would bring the full source record as a Variant column
+      - ClientAccountID: $1:ClientAccountID::string      #-- Get the ClientAccountID as a string
+      - AccountAlias: $1:AccountAlias::string
+      - FXRateToBase: $1:FXRateToBase::Number(38, 5)     #-- Get the FXRateToBase as a Number
+      
+landing_table:
+      . . . same as in run_csv_ingestion() example above
+{%- endset -%}
 
-```
-{% set landing_config = {
-    'db_name': 'my_db',
-    'schema_name': 'my_schema',
-    'table_name': 'my_json_table',
-    'columns': [{'name': 'id', 'type': 'VARCHAR'}, {'name': 'data', 'type': 'VARIANT'}]
-} %}
-{% set ingest_config = {
-    'pattern': '.*.json',
-    'stage_name': 'my_db.my_schema.my_json_stage',
-    'format_name': 'my_db.my_schema.my_json_ff',
-    'field_expressions': [
-        {'id': '$1:id::string'},
-        {'data': '$1'}
-    ]
-} %}
+{%- set cfg = fromyaml(ingestion_cfg) -%}
 
 {{ pragmatic_data.run_semi_structured_ingestion(
-    landing_table_dict=landing_config,
-    ingestion_dict=ingest_config
+    landing_table_dict  = cfg.landing_table,
+    ingestion_dict      = cfg.ingestion,
+    recreate_table      = false
 ) }}
 ```
+The above example shows how ingesting semi-structured files is almost as simple as ingesting CSVs,
+with only four parameters being Landing Table specific. The fourth is the list of column expressions. 
 
-For more detailed examples, refer to the [Landing Tables Macros documentation](https://www.google.com/search?q=ingestion_lib/README.md%23landing-tables-macros).
+The extra (little) effort of having to list the desired columns and the expressions to get them,
+is balanced by the great benefit -at least for Parquet and Avro- of stable data types and validated content.
+
+The expressions to define the column can be generated by a SQL query using the INFER_SCHEMA function:
+```SQL
+-- Produce the list of columns for LT ingestion macro in the form " - col1: expression"
+select '- ' || column_name || ': ' || expression  AS sql_text 
+from table( INFER_SCHEMA(
+   LOCATION => '@database.schema.stage_name/folder/'    -- stage and path
+   , FILE_FORMAT => 'database.schema.file_format_name'  -- file format 
+   , FILES => 'file_name.parquet'                       -- exact file name (use LS @stage to find one)
+   , IGNORE_CASE => FALSE
+) );
+```
 
 ---
 
 ### `run_table_export()`
 
-This macro handles the process of exporting data from a dbt model (table or view) into files in a Snowflake stage.
+This macro handles the process of exporting data from a dbt model (table or view) into files 
+in a Snowflake stage.
 
 **Arguments:**
 
-- `table_ref` (Relation): A dbt relation object (created using `ref()` or `source()`) pointing to the data to be exported.
+- `table_ref` (Relation): A dbt relation object (created using `ref()` or `source()`) 
+  pointing to the data to be exported.
 
-- `export_path_cfg` (dict): Configuration for the output file path and naming convention within the stage.
+- `export_path_cfg` (dict): Configuration for the output file path and file naming within the output stage.
 
 - `stage_cfg` (dict): Configuration specifying the `stage_name` and `format_name` to be used for the export.
 
-- `flags` (dict): A dictionary of boolean flags to control the export behavior, such as `only_one_export` and `remove_folder_before_export`.
-
+- `flags` (dict): A dictionary of boolean flags to control the export behavior, 
+  such as `only_one_export` and `remove_folder_before_export` and `create_dummy_file`.
 
 **Usage:**
 
-SQL
+```YAML
+{% set table_ref = ref('GENERIC_TWO_COLUMN_TABLE') %}
+{% set yaml_config %}
+export_path_cfg:
+  export_path_base:           SYSTEM_A/generic/
+  export_path_date_part:
+  export_file_name_prefix:
 
-```
-{% set export_config = {
-    'export_path_cfg': {
-        'export_path_base': 'system_a/my_export/'
-    },
-    'stage_cfg': {
-        'format_name': 'my_db.my_schema.my_ff',
-        'stage_name': 'my_db.my_schema.my_stage'
-    },
-    'flags': {
-        'remove_folder_before_export': true,
-        'create_dummy_file': true
-    }
-} %}
+stage_cfg:
+  format_name: "{{ get_SYSTEM_A_inout_csv_ff_name() }}"
+  stage_name:  "{{ get_SYSTEM_A_inout_stage_name() }}"
 
-{{ run_table_export(
-    table_ref=ref('my_model_to_export'),
-    export_path_cfg=export_config.export_path_cfg,
-    stage_cfg=export_config.stage_cfg,
-    flags=export_config.flags
+flags:
+  only_one_export:                true
+  remove_folder_before_export:    true
+  create_dummy_file:              true
+{% endset %}
+
+{%- set cfg = fromyaml(yaml_config) -%}
+
+{{ pragmatic_data.run_table_export(
+    table_ref       = table_ref,
+    export_path_cfg = cfg.export_path_cfg,
+    stage_cfg       = cfg.stage_cfg,
+    flags           = cfg.flags
 ) }}
 ```
 
-For more detailed examples, see the [Export Macros documentation](https://www.google.com/search?q=export_lib/README.md).
-
+The process flags are used to enable (true) or disable (false or absent) the script's functionalities:
+- **create_dummy_file**: create a dummy file when the export process if finished
+- **only_one_export**: if an export (dummy file) is already in the folder targeted for export (date based)
+- **remove_folder_before_export**: if the content of the target folder must be deleted before starting the export. 
+  The content is deleted only if the export is being written. Nothing is deleted if no export is scheduled
+  because of the `only_one_export` falg.
 
 ## General ingestion and export process
 Ingestion and Export are specular operations on files, one loading data from files into tables and 
@@ -478,3 +508,7 @@ the model being run.
 In such setup you have to take care that the LT models depend on the setup model
 for the right system, and that the STG dbt models that use the LT data depend on
 the audit/ingestion model used to invoke the ingestion macro.
+
+Once that is in place, the ingestion becomes part of the DAG and is run in parallel 
+and invoked as any other model when you include the upstream models. 
+That is not the case if you orchestrate the load of the landing tables using the macros.   
