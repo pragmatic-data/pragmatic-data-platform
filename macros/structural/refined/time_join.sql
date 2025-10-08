@@ -33,11 +33,11 @@ FROM {{ base_table_dict['name'] }} as bt
 {%- set time_operator = joined_tables_dict[joined_table_name]['time_operator'] or '>=' %}
 ASOF JOIN {{joined_table_name}} as {{alias}}
     MATCH_CONDITION(
-    {%- for t_col, bt_col in joined_tables_dict[joined_table_name]['time_column'].items() -%}
+    {%- for bt_col, t_col in joined_tables_dict[joined_table_name]['time_column'].items() -%}
         bt.{{bt_col}} {{time_operator}} {{alias}}.{{t_col}}
     {%- endfor -%} )    
     ON(
-    {%- for t_col, bt_col in joined_tables_dict[joined_table_name]['join_columns'].items() -%}
+    {%- for bt_col, t_col in joined_tables_dict[joined_table_name]['join_columns'].items() -%}
         bt.{{bt_col}} = {{alias}}.{{t_col}}
         {%- if not loop.last %} and {% endif -%}
     {%- endfor -%} )    
