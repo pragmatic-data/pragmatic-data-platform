@@ -11,7 +11,7 @@ SELECT
     {%- if base_table_dict['include_all_columns'] %} bt.* {% endif %}
     {%- if base_table_dict['include_all_columns'] and base_table_dict['exclude_column_list'] -%}
         EXCLUDE( {{ base_table_dict['exclude_column_list'] | join(', ') }} ){%- endif -%}
-    {%- if base_table_dict['include_all_columns'] and base_table_dict['columns'] %},{% endif %}
+    {%- if base_table_dict['include_all_columns'] %}, {% endif %}
 
     {{- pragmatic_data.column_expressions(base_table_dict['columns'], 'bt') }}
     {%- if base_table_dict['columns'] %}, {% endif -%}
