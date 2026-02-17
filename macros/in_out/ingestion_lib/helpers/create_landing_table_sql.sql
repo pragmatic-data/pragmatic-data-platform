@@ -1,11 +1,12 @@
 {% macro create_landing_table_sql(
     landing_table_dict,
-    recreate_table = false
+    recreate_table = false,
+    add_file_content_key = false
 ) %}
 
 {% set full_table_name = landing_table_dict.db_name ~ '.' ~ landing_table_dict.schema_name ~ '.' ~ landing_table_dict.table_name %}
 
-    CREATE {% if recreate_table %} OR REPLACE {% endif -%}
+    CREATE {% if recreate_table %}OR REPLACE {% endif -%}
     TRANSIENT TABLE {{ full_table_name }}
     {%- if not recreate_table %} IF NOT EXISTS {% endif %}
     (
@@ -23,6 +24,9 @@
         FILE_ROW_NUMBER             integer,
         FILE_LAST_MODIFIED_TS_UTC   TIMESTAMP_NTZ(9),
         INGESTION_TS_UTC            TIMESTAMP_NTZ(9)
+        {%- if add_file_content_key %}, 
+        FILE_CONTENT_KEY            string
+        {%- endif %}
     )
     COMMENT = '{{ landing_table_dict.comment or ('Landing table ' ~ full_table_name ) }}';
 
