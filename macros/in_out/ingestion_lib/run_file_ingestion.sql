@@ -5,9 +5,7 @@
 ) %}
 {% if execute %}
     
-{% set full_table_name = landing_table_dict.db_name 
-                 ~ '.' ~ landing_table_dict.schema_name 
-                 ~ '.' ~ landing_table_dict.table_name %}
+{% set full_table_name = pragmatic_data.landing_table_fqn(landing_table_dict) %}
 
 {% set field_definitions = pragmatic_data.field_definitions(ingestion_dict, landing_table_dict.columns|length) %}
 
@@ -46,6 +44,8 @@ Status: {{ results.columns[0].values()[0]  }}
 {% endset %}
 {{ log(' *** ' ~ ingestion_result_str , info=True) }}
 {{ log('DONE ingestion into Landing Table ' ~ full_table_name , info=True) }}
+
+{% do pragmatic_data.run_clean_landing_table(landing_table_dict) %}
 
 {% endif %} {# if execute #}
 {% endmacro %}
