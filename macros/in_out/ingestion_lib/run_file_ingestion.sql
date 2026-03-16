@@ -45,13 +45,7 @@ Status: {{ results.columns[0].values()[0]  }}
 {{ log(' *** ' ~ ingestion_result_str , info=True) }}
 {{ log('DONE ingestion into Landing Table ' ~ full_table_name , info=True) }}
 
-{% if landing_table_dict.get('cleanup') %}
-    {{ log(' Cleaning Landing Table ' ~ full_table_name, info=True) }}
-    {% set cleanup_result = run_query(
-        pragmatic_data.clean_landing_table_sql(landing_table_dict)
-    ) %}
-    {{ log(' *** Deleted ' ~ cleanup_result.columns[0].values()[0] ~ ' rows from ' ~ full_table_name, info=True) }}
-{% endif %}
+{% do pragmatic_data.run_clean_landing_table(landing_table_dict) %}
 
 {% endif %} {# if execute #}
 {% endmacro %}

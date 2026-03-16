@@ -1,6 +1,10 @@
 {%- macro clean_landing_table_sql(landing_table_dict) -%}
 
-{%- set cleanup      = landing_table_dict.get('cleanup', {}) -%}
+{%- set cleanup = landing_table_dict.get('cleanup') -%}
+{%- if not cleanup -%}
+    {%- do return('') -%}
+{%- endif -%}
+
 {%- set fqn          = pragmatic_data.landing_table_fqn(landing_table_dict) -%}
 {%- set keep_batches = cleanup.get('keep_n_batches') -%}
 {%- set keep_days    = cleanup.get('keep_days') -%}
@@ -9,11 +13,11 @@
 
 {%- if keep_batches is none and keep_days is none -%}
     {{- exceptions.raise_compiler_error(
-        "clean_landing_table_sql: specifica 'keep_n_batches' oppure 'keep_days' nel dict cleanup."
+        "clean_landing_table_sql: specify 'keep_n_batches' or 'keep_days' in the cleanup dict."
     ) -}}
 {%- elif keep_batches is not none and keep_days is not none -%}
     {{- exceptions.raise_compiler_error(
-        "clean_landing_table_sql: 'keep_n_batches' e 'keep_days' sono mutuamente esclusivi — specificane solo uno."
+        "clean_landing_table_sql: 'keep_n_batches' and 'keep_days' are mutually exclusive — specify only one."
     ) -}}
 {%- elif keep_batches is not none -%}
 
