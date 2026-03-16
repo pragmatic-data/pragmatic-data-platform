@@ -56,6 +56,78 @@ The above config is used in the model named `YOUR_STAGE_MODEL` as shown below:
 ) }}
 ```
 
+#### landing_filter ([source](landing_filter.sql))
+
+Generates a SQL `WHERE` condition to filter a STG model to only read the most recent
+data from a landing table — by number of batches, by age in days, or by age in hours.
+Returns a plain SQL string, intended for use in the `source.where` key passed to `stage()`.
+
+On `--full-refresh` always returns `true` (no filter — reload everything).
+With no parameters returns `true` (no filter).
+Multiple parameters are combined with `AND` (safe intersection).
+
+**Signature**:
+```jinja
+{{ pragmatic_data.landing_filter(
+    source_rel,
+    n_batches   = none,
+    since_days  = none,
+    since_hours = none,
+    ts_column   = 'INGESTION_TS_UTC'
+) }}
+```
+
+| Parameter | Type | Default | Description |
+|---|---|---|---|
+| `source_rel` | Relation | — | The landing table reference, e.g. `source('MY_SRC', 'MY_TABLE')` |
+| `n_batches` | int | `none` | Keep only rows from the last N distinct ingestion timestamps |
+| `since_days` | int | `none` | Keep only rows ingested within the last N days |
+| `since_hours` | int | `none` | Keep only rows ingested within the last N hours |
+| `ts_column` | string | `'INGESTION_TS_UTC'` | Name of the ingestion timestamp column in the landing table |
+
+**Usage example**:
+```jinja
+{%- set source_model = source('SYSTEM_A', 'MY_LANDING_TABLE') -%}
+
+{{- pragmatic_data.stage(
+    source_model = source_model,
+    source = {
+        'where': pragmatic_data.landing_filter(source_model, n_batches=7),
+        ...
+    },
+    ...
+) }}
+```
+
+**SQL generated** — `n_batches=7`:
+```sql
+INGESTION_TS_UTC >= (
+    SELECT MIN(INGESTION_TS_UTC)
+    FROM (
+        SELECT DISTINCT INGESTION_TS_UTC
+        FROM MY_DB.MY_SCHEMA.MY_LANDING_TABLE
+        ORDER BY INGESTION_TS_UTC DESC
+        LIMIT 7
+    )
+)
+```
+
+**SQL generated** — `since_days=30`:
+```sql
+INGESTION_TS_UTC >= DATEADD(DAY, -30, CURRENT_TIMESTAMP())
+```
+
+**SQL generated** — `since_hours=24`:
+```sql
+INGESTION_TS_UTC >= DATEADD(HOUR, -24, CURRENT_TIMESTAMP())
+```
+
+**SQL generated** — `n_batches=7, since_days=30` (AND):
+```sql
+INGESTION_TS_UTC >= (SELECT MIN(...) ... LIMIT 7)
+    AND INGESTION_TS_UTC >= DATEADD(DAY, -30, CURRENT_TIMESTAMP())
+```
+
 ----
 ### &#169;  Copyright 2022-2025 Roberto Zagni
 All right reserved.
