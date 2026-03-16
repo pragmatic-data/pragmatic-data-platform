@@ -5,9 +5,7 @@
 ) %}
 {% if execute %}
     
-{% set full_table_name = landing_table_dict.db_name 
-                 ~ '.' ~ landing_table_dict.schema_name 
-                 ~ '.' ~ landing_table_dict.table_name %}
+{% set full_table_name = pragmatic_data.landing_table_fqn(landing_table_dict) %}
 
 {% set field_definitions = pragmatic_data.field_definitions(ingestion_dict, landing_table_dict.columns|length) %}
 
@@ -46,6 +44,14 @@ Status: {{ results.columns[0].values()[0]  }}
 {% endset %}
 {{ log(' *** ' ~ ingestion_result_str , info=True) }}
 {{ log('DONE ingestion into Landing Table ' ~ full_table_name , info=True) }}
+
+{% if landing_table_dict.get('cleanup') %}
+    {{ log(' Cleaning Landing Table ' ~ full_table_name, info=True) }}
+    {% set cleanup_result = run_query(
+        pragmatic_data.clean_landing_table_sql(landing_table_dict)
+    ) %}
+    {{ log(' *** Deleted ' ~ cleanup_result.columns[0].values()[0] ~ ' rows from ' ~ full_table_name, info=True) }}
+{% endif %}
 
 {% endif %} {# if execute #}
 {% endmacro %}

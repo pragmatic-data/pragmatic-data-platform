@@ -1,9 +1,14 @@
+{#
+  DEPRECATED — use run_file_ingestion instead.
+  This macro will be removed in a future major version of pragmatic-data-platform.
+#}
 {% macro run_CSV_ingestion(
     landing_table_dict,
     ingestion_dict,
     recreate_table = false
 ) %}
 {% if execute %}
+{{ log('DEPRECATION WARNING: run_CSV_ingestion is deprecated. Use run_file_ingestion instead.', info=True) }}
     
 {% set full_table_name = landing_table_dict.db_name 
                  ~ '.' ~ landing_table_dict.schema_name 
