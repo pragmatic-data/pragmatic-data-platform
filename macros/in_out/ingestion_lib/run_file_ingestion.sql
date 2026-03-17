@@ -40,8 +40,8 @@
 Loaded {{ results.columns[0].values() | length }} files
 {%- else -%}
 Status: {{ results.columns[0].values()[0]  }}
-{%- endif %}
-{% endset %}
+{%- endif -%}
+{%- endset %}
 {{ log(' *** ' ~ ingestion_result_str , info=True) }}
 {{ log('DONE ingestion into Landing Table ' ~ full_table_name , info=True) }}
 
