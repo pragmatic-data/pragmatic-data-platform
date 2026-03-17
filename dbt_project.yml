@@ -24,9 +24,9 @@ clean-targets:         # directories to be removed by `dbt clean`
 
 
 # Configuring models
-models:
-  pragmatic_data:
-    +materialized: table
+# models:
+#  pragmatic_data:
+#    +materialized: table
 
 # COPYRIGHT & LICENSE
 # (C) Copyright 2022-2024 Roberto Zagni.
