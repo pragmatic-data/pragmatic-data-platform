@@ -31,13 +31,17 @@ For the full explanation on how to install packages, please [read the dbt docs](
 * [Macros](#macros)
     * [Ingestion and Export macros](#ingestion-and-export-macros)
         - [`inout_setup_sql()`](#inout_setup_sql)
-        - [`run_csv_ingestion()`](#run_csv_ingestion)
-        - [`run_semi_structured_ingestion()`](#run_semi_structured_ingestion)
+        - [`run_file_ingestion()`](#run_file_ingestion)
+        - [`run_clean_landing_table()`](#run_clean_landing_table)
+        - [`run_create_pipe()`](#run_create_pipe)
         - [`run_table_export()`](#run_table_export)
+        - [`run_csv_ingestion()`](#run_csv_ingestion) *(deprecated)*
+        - [`run_semi_structured_ingestion()`](#run_semi_structured_ingestion) *(deprecated)*
         
     * [Storage layer macros](#storage-layer-macros)
         - STG models
           - [`stage()`](#stage)
+          - [`landing_filter()`](#landing_filter)
           - [`pdp_hash()`](#pdp_hash)
         - HIST models - ingest multiple versions per batch
           - [`save_history_with_multiple_versions()`](#save_history_with_multiple_versions)
@@ -97,14 +101,19 @@ The package provides macros that support the different layers of the Pragmatic D
 
 ### Ingestion and Export macros
 
-These macros handle loading data from files into tables and exporting data from tables back to files, primarily using the `COPY INTO` command.
+These macros handle loading data from files into tables and exporting data from tables back to files.
+Ingestion can be done as a direct batch load (`run_file_ingestion`) or via a Snowpipe for continuous ingestion (`run_create_pipe`).
+Both rely on Snowflake stages and file formats set up with `inout_setup_sql`.
 
-|Macro| Description                                                                                                                    | Details                                                       |
-|---|--------------------------------------------------------------------------------------------------------------------------------|---------------------------------------------------------------|
-|<a name="inout_setup_sql"></a>`inout_setup_sql()`| Generates and executes the SQL to create File Formats and Stages.                                                              | [details](macros/in_out/README.md#ingestion-and-export-setup) |
-|<a name="run_csv_ingestion"></a>`run_csv_ingestion()`| Orchestrate the ingestion of CSV files into a landing table, creating it if does not exists.                                   | [details](macros/in_out/ingestion_lib/README.md)              |
-|<a name="run_semi_structured_ingestion"></a>`run_semi_structured_ingestion()`| Orchestrate the ingestion of semi-structured files (like JSON or Parquet) into a landing table, creating it if does not exists. | [details](macros/in_out/ingestion_lib/README.md)              |
-|<a name="run_table_export"></a>`run_table_export()`| Orchestrates the export of a table's data to files in a stage, using the selected File Format.                                 | [details](macros/in_out/export_lib/README.md)                 |
+|Macro|Description|Details|
+|---|---|---|
+|<a name="inout_setup_sql"></a>`inout_setup_sql()`|Generates and executes the SQL to create File Formats and Stages.|[details](macros/in_out/README.md#ingestion-and-export-setup)|
+|<a name="run_file_ingestion"></a>`run_file_ingestion()`|Orchestrates the full ingestion cycle for CSV or semi-structured files into a landing table (creates it if it doesn't exist, runs `COPY INTO`, optionally cleans up old rows). **Recommended for most use cases.**|[details](macros/in_out/ingestion_lib/README.md#current-yaml-based-landing-table-ingestion)|
+|<a name="run_clean_landing_table"></a>`run_clean_landing_table()`|Standalone cleanup: removes rows from a landing table older than a configured threshold (by number of batches or by age in days). Called automatically by `run_file_ingestion()` when cleanup is configured; also available independently.|[details](macros/in_out/ingestion_lib/README.md)|
+|<a name="run_create_pipe"></a>`run_create_pipe()`|Creates a Snowpipe for continuous, near-real-time ingestion of files from a stage into a landing table.|[details](macros/in_out/ingestion_lib/README.md)|
+|<a name="run_table_export"></a>`run_table_export()`|Orchestrates the export of a table's data to files in a stage, using the selected File Format.|[details](macros/in_out/export_lib/README.md)|
+|<a name="run_csv_ingestion"></a>~~`run_csv_ingestion()`~~|⚠️ **Deprecated.** Use `run_file_ingestion()` instead. Kept for backward compatibility.|[details](macros/in_out/ingestion_lib/README.md)|
+|<a name="run_semi_structured_ingestion"></a>~~`run_semi_structured_ingestion()`~~|⚠️ **Deprecated.** Use `run_file_ingestion()` instead. Kept for backward compatibility.|[details](macros/in_out/ingestion_lib/README.md)|
 
 
 ### Storage Layer macros
@@ -117,6 +126,7 @@ The key pattern to historize incoming source data is with the STG >> HIST >> VER
 |Macro| Description                                                                                                                                                                                                                                                   |Details|
 |---|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|---|
 |<a name="stage"></a>`stage()`| **The primary macro for staging models.** It standardizes column naming, adapts data types, flattens structures, and generates key metadata like hash keys and hash diffs based on YAML configuration. This is where most of a developer's effort is focused. |[details](macros/structural/storage/stage/README.md)|
+|<a name="landing_filter"></a>`landing_filter()`|Optional helper that generates a `WHERE` condition for the `source.where` key of `stage()`, avoiding the need to hand-write the SQL. Covers two common landing table filter patterns: keep only the last N ingestion batches, or keep only rows ingested within the last N days or hours.|[details](macros/structural/storage/stage/README.md)|
 |<a name="pdp_hash"></a>`pdp_hash()`| The macro used behind the scenes by `stage()` to generate consistent hash values. You can use it directly, if you need to create hashed columns outside of the STG model.                                                                                     ||
 
 The `stage()` macro is where you adapt and make the source data usable without changing its meaning.  
