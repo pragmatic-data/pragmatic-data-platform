@@ -15,9 +15,12 @@ For context and a full example on the overall STG → HIST → VER pattern, see 
 
 **Table of Contents**
 - [When to use](#when-to-use)
-- [save_history_with_multiple_versions](#save_history_with_multiple_versions)
-- [versions_from_history_with_multiple_versions](#versions_from_history_with_multiple_versions)
-- [current_from_history_with_multiple_versions (helper)](#current_from_history_with_multiple_versions-helper)
+- [`save_history_with_multiple_versions()`](#save_history_with_multiple_versions)  
+  Main HIST macro pattern in the PDP. Identifies and persists any number of new versions from a STG input into a HIST table.
+- [`versions_from_history_with_multiple_versions()`](#versions_from_history_with_multiple_versions)  
+  User friendly and functional interface to the contents of the HIST table. Provides IS_CURRENT, VALID_FROM/VALID_TO, ...
+- [`current_from_history_with_multiple_versions()`](#current_from_history_with_multiple_versions-helper)  
+   Helper macro. Mostly for internal use.
 
 ## When to use
 
