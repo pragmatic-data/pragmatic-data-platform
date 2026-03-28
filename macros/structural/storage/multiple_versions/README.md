@@ -38,8 +38,7 @@ For context and a full example on the overall STG → HIST → VER pattern, see 
 
 This pattern is quick and very resilient, giving you -for the cost of a sort on new inputs- a perfect insert-only history that do not miss any change. Most of the time this is the right choice.
 
-If you need to track logical deletions or precise auditing is optional and your numbers are so big (billions of rows) that sorting new inputs might be slow, see
-[single_version/README.md](../single_version/README.md).
+If you need to track logical deletions or precise auditing is optional and your numbers are so big (billions of rows) that sorting new inputs might be slow, see [single_version/README.md](../single_version/README.md).
 
 ---
 
@@ -58,25 +57,8 @@ It uses a `LAG` window function over `sort_expr` to detect intra-batch changes a
 only the first copy of each new version in the batch. The first (oldest) version of the input
 batch is checked against the latest (most recent) version found in the HIST table.
 
-Logical grouping of source rows based on the technical timeline:
-
-- export batch - the rows exported at the same time (usually in a single file, but not necessarily)
-  Usually based on the FILE_LAST_MODIFIED_TS_UTC column.
-
-- ingestion batch - the rows ingested at the same time in the landing table. It contains one or more export batches.
-  Usually based on the INGESTION_TS_UTC column.
-
-- input batch - the rows in the landing table newer than the per-key current row in the HIST table.
-  These are the only rows processed when you leave enabled the high water mark ingestion.
-  It contains zero or more ingestion batches. Once historicized it becomes a hist batch.
-
-- hist batch - the rows historicized at the same time in the HIST table. It contains one or more ingestion batches.
-  Usually based on the HIST_LOAD_TS_UTC column. It is logically divided in one or more load batches (based on their definition).
-
-- load batch - a flexible definition for your HIST table, allowing you to select how to partition the historicized data
-  to select the current version. This is usually based on one of the elements in the technical timeline described aboce,
-  most of the times it is the same as ingestion batch. This is generally a good logical partitioning choice,
-  but requires some extra sort column (sort_expr) to deterministically sort versions in initial loads, restarts and multiversion loads.
+For clarity in the naming of logical groups of source rows based on the advancement in the load process,
+see [storage/README.md](../README.md#technical-timeline-considerations)
 
 **Signature**:
 ```jinja

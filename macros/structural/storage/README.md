@@ -129,6 +129,34 @@ in the YAML config of the STG model to be sure to keep the latest version (if yo
 
 Macros: `save_history()`, `save_history_with_deletion()`, `save_history_with_deletion_from_list()`
 
+### Technical timeline considerations
+
+The process of receiving and historicizing data goes through a sequence of steps, each performed on the
+newly available rows from the source. These rows get logically grouped in a batch of rows that have been processed
+at the same time for a specific step.
+
+It is useful to have some names for these logical grouping of source rows based on the technical timeline:
+
+- export batch - the rows exported at the same time (usually in a single file, but not necessarily)
+  Usually recognized by the FILE_LAST_MODIFIED_TS_UTC column, loaded as metadata by the PDP ingestion.
+
+- ingestion batch - the rows ingested at the same time in the landing table. It contains one or more export batches.
+  Usually recognized by the INGESTION_TS_UTC column, added as metadata in the LT by the PDP ingestion.
+
+- input batch - the rows in the landing table newer than the per-key current row in the HIST table.
+  These are the only rows processed by the HIST model when you leave enabled the high water mark ingestion.
+  It contains zero or more ingestion batches. Once historicized it becomes a hist batch.
+
+- hist batch - the rows historicized at the same time in the HIST table. It contains one or more ingestion batches.
+  Usually recognized by the HIST_LOAD_TS_UTC column, added by the HIST macro.
+  It is logically divided in one or more load batches (based on their definition).
+
+- load batch - a flexible definition for your HIST table, allowing you to select how to partition the historicized data
+  to select the current version. This is usually based on one of the elements in the technical timeline described aboce,
+  most of the times it is the same as ingestion batch. This is generally a good logical partitioning choice,
+  but requires some extra sort column (sort_expr) to deterministically sort versions in initial loads, restarts and multiversion loads.
+
+
 ## End-to-end example
 
 The following illustrates the full STG → HIST → VER pattern for a **Trades** entity,
