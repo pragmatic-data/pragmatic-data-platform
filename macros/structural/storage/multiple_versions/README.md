@@ -32,13 +32,13 @@ For context and a full example on the overall STG → HIST → VER pattern, see 
 
 - You want to be able to load any lenght of history in a single run, correctly storing all changes.
 - An entity changes over time and all past states are meaningful (e.g. a security whose name changes, a position that evolves daily, an order that gets amended)
-- You need/want to keep an accurate audit of all the changes you have received (for compliance, security, ... or just debugging).
+- You need/want to keep an accurate audit of all the changes you have received (for compliance, security, ... or just troubleshooting).
 - You are building an accurate slowly-changing dimension in the Delivery layer and you do not want to miss any version.
 - You need accurate point-in-time joins using the `VALID_FROM`/`VALID_TO` columns fro VER in a `ASOF JOIN`
 
-This pattern is quick and very resilient, giving you for free a perfect insert-only history that do not miss any change. Most of the time is the right choice.
+This pattern is quick and very resilient, giving you -for the cost of a sort on new inputs- a perfect insert-only history that do not miss any change. Most of the time this is the right choice.
 
-If you need to track logical deletions or precise auditing is optional and your table is so big (billions of rows) that sorting might be slow, see
+If you need to track logical deletions or precise auditing is optional and your numbers are so big (billions of rows) that sorting new inputs might be slow, see
 [single_version/README.md](../single_version/README.md).
 
 ---
@@ -52,10 +52,31 @@ On full-refresh runs it rebuilds HIST from scratch. After the initial developmen
 it is suggested to lock the full-refresh feature for HIST tables.
 
 The macro handles multiple versions of the same key arriving in a single input batch
-(e.g. the same trade exported twice with slightly different attributes): it uses a `LAG`
-window function over `sort_expr` to detect intra-batch changes and correctly stores
+(e.g. the same trade exported twice with slightly different attributes in the same file
+or in different files ingested at the same time in the LT).
+It uses a `LAG` window function over `sort_expr` to detect intra-batch changes and correctly stores
 only the first copy of each new version in the batch. The first (oldest) version of the input
-batch is checked against the latest (most recent) version of the HIST table.
+batch is checked against the latest (most recent) version found in the HIST table.
+
+Logical grouping of source rows based on the technical timeline:
+
+- export batch - the rows exported at the same time (usually in a single file, but not necessarily)
+  Usually based on the FILE_LAST_MODIFIED_TS_UTC column.
+
+- ingestion batch - the rows ingested at the same time in the landing table. It contains one or more export batches.
+  Usually based on the INGESTION_TS_UTC column.
+
+- input batch - the rows in the landing table newer than the per-key current row in the HIST table.
+  These are the only rows processed when you leave enabled the high water mark ingestion.
+  It contains zero or more ingestion batches. Once historicized it becomes a hist batch.
+
+- hist batch - the rows historicized at the same time in the HIST table. It contains one or more ingestion batches.
+  Usually based on the HIST_LOAD_TS_UTC column. It is logically divided in one or more load batches (based on their definition).
+
+- load batch - a flexible definition for your HIST table, allowing you to select how to partition the historicized data
+  to select the current version. This is usually based on one of the elements in the technical timeline described aboce,
+  most of the times it is the same as ingestion batch. This is generally a good logical partitioning choice,
+  but requires some extra sort column (sort_expr) to deterministically sort versions in initial loads, restarts and multiversion loads.
 
 **Signature**:
 ```jinja
@@ -80,10 +101,10 @@ batch is checked against the latest (most recent) version of the HIST table.
 | `input_rel` | Relation | — | **Required.** The STG model to read from, e.g. `ref('STG_ORDERS')` |
 | `key_column` | string | — | **Required.** Name of the HKEY column (surrogate key) |
 | `diff_column` | string | — | **Required.** Name of the HDIFF column (change fingerprint) |
-| `history_rel` | Relation | `this` | The HIST table to compare against. BETTER LEFT ALONE. Override to merge history from an external source or for special test setups. |
-| `sort_expr` | string | `INGESTION_TS_UTC` | Expression to order versions within the same key. Use a timeline that works well with the high-watermark logic. |
-| `load_ts_column` | string | `INGESTION_TS_UTC` | Column holding the ingestion timestamp. Used for incremental high-watermark logic. |
-| `high_watermark_column` | string | `INGESTION_TS_UTC` | Column used for the per-key high-watermark filter. Rows with a value greater than the current HIST max are loaded. |
+| `history_rel` | Relation | `this` | The HIST table to compare against. BETTER LEFT ALONE. Override to merge history from an external source or for test setups. |
+| `load_ts_column` | string | `INGESTION_TS_UTC` | The primary sort key to historicize versions. A single, reliable column, usually the ingestion timestamp in the LT, that determines your load batches. Primary sort key to extract the most recent version from the history. |
+| `sort_expr` | string | `INGESTION_TS_UTC` | Secondary sort expression to order past to present in a fully deterministic way the versions (of one key) within a load batch comprising multiple versions. |
+| `high_watermark_column` | string | `INGESTION_TS_UTC` | Column used for the per-key high-watermark filter. Must have same or more detail than `load_ts_column`. Rows with a value greater than the value in the current HIST record are considered for loading. No MAX involved. |
 | `high_watermark_test` | string | `>` | Comparison operator for the high-watermark filter (`>` or `>=`). |
 | `input_filter_expr` | string | `'true'` | Additional SQL WHERE condition on the input before comparison. |
 | `history_filter_expr` | string | `'true'` | Additional SQL WHERE condition when reading current state from HIST. |
@@ -106,13 +127,11 @@ batch is checked against the latest (most recent) version of the HIST table.
 ) }}
 ```
 
-The `sort_expr` is optional, defaulting to the `pdp.sort_expr` variable or the `INGESTION_TS_UTC` column, if the variable is not set.  
-When provided it must sort effectively the changes in the "new input batch" created by the per-key high-watermark column values in the HIST and in the STG.
-Technical metadata columns like (`RECORD_SOURCE`, `FILE_ROW_NUMBER`) work well as they align naturally with the defualt high-watermark on the technical timeline
-and the row number break ties between rows that come from the same file.
-To validate your sorting expressino consider the case when you restart the ingestion and load after a stop and you need to process many of your usual (micro- or macro-)batches.
-You can use a business effectivity date like (`EFFECTIVITY_DATE`) as the primary sort key, as it is only used for sorting the "new inputs",
-it does not need to be compared with the high-watermark column to determine what are the new columns to be processed.
+The `sort_expr` is optional, but is needed to sort deterministically the versions in the "input batch" coming in from the STG model.
+Technical metadata columns like (`RECORD_SOURCE`, `FILE_ROW_NUMBER`) work well as they align naturally with the defualt load batches based on the technical timeline and the row number deterministically breaks ties between rows that come from the same file.
+
+To validate your sorting expression consider the case when you restart the ingestion after a multi period stop and you need to process many of your usual (micro- or macro-)batches. A good expression is generally needed to process multiple-period initial loads or when multiple versions appear in each load period.
+If you have a deterministic business effectivity date/TS like (`EFFECTIVITY_DATE`) you can use it as the sort expression, as it is only used to break ties (when sorting the "new inputs" and the versions from the last load batch). It is not used to determine what are the new columns to be processed.
 
 ---
 
@@ -129,6 +148,9 @@ It is also the first column in sorting of the versions out of the HIST table, fo
 It is common that this is a column on the business timeline, like `EFFECTIVITY_DATE`, so that you sort your history on that business timeline.
 
 It is possible to build multiple VER models over the same HIST table to have different views along different timelines.
+
+While the HIST model generally operates on the technical timeline, because it needs to incrementally add the new versions. 
+In the VER you can chose, as the selected timeline is applied to all the data in the HIST model.
 
 **Signature**:
 ```jinja
@@ -152,12 +174,12 @@ It is possible to build multiple VER models over the same HIST table to have dif
 | `history_rel` | Relation | — | **Required.** The HIST model, e.g. `ref('HIST_ORDERS')` |
 | `key_column` | string | — | **Required.** Name of the HKEY column |
 | `diff_column` | string | — | **Required.** Name of the HDIFF column |
-| `version_sort_column` | string | `INGESTION_TS_UTC` | Column that defines the business order of versions. Should match the `sort_expr` used in the HIST macro. |
+| `version_sort_column` | string | `INGESTION_TS_UTC` | Column that defines the sort order of the versions. Must be a DATE or TIMESTAMP, as it provides the content for the VALID_FROM and VALID_TO columns. |
 | `load_ts_column` | string | `INGESTION_TS_UTC` | Ingestion timestamp column. Used for `ingestion_batch` numbering. |
 | `hist_load_ts_column` | string | `HIST_LOAD_TS_UTC` | Load timestamp column (when the row was written to HIST). Used for `load_batch` numbering. |
 | `selection_expr` | string | `'*'` | Columns to select from HIST. Override to project only specific columns. |
 | `history_filter_expr` | string | `'true'` | SQL WHERE condition to filter rows from HIST before adding metadata. |
-| `extra_sort_columns` | list or string | `none` | Additional columns for tie-breaking the version order. |
+| `extra_sort_columns` | list or string | `none` | Additional columns for tie-breaking the version order. Can be any type. |
 
 **Columns added by the macro** (window functions — no new data):
 
@@ -165,11 +187,11 @@ It is possible to build multiple VER models over the same HIST table to have dif
 |--------|-------------|
 | `VERSION_COUNT` | Total number of versions for this key |
 | `VERSION_NUMBER` | Sequential version index for this key (1 = oldest) |
-| `INGESTION_BATCH` | Dense rank of the ingestion timestamp among all ingestion timestamps for this key |
-| `LOAD_BATCH` | Dense rank of the HIST load timestamp for this key |
-| `DIM_SCD_HKEY` | Stable SCD surrogate key: `MD5(diff_column, version_sort_column)`. Use as PK in Delivery SCD dimensions. |
-| `VALID_FROM` | Value of `version_sort_column` for this version |
-| `VALID_TO` | Value of `version_sort_column` for the next version; `'9999-09-09'` for the current version (configurable via `pdp.end_of_time`) |
+| `INGESTION_BATCH` | Dense rank on the `load_ts_column` column for this key |
+| `LOAD_BATCH` | Dense rank on the `hist_load_ts_column` column for this key |
+| `DIM_SCD_HKEY` | Stable SCD surrogate key based on the `diff_column` and `version_sort_column`. Use as PK in Delivery SCD dimensions. |
+| `VALID_FROM` | Start of the validity period for this row. Value of `version_sort_column` for this version. |
+| `VALID_TO` | End of the validity period for this row. Value of `version_sort_column` for the next version; `'9999-09-09'` for the current version (configurable via `pdp.end_of_time`) |
 | `IS_CURRENT` | `true` for the most recent version (`VERSION_NUMBER = VERSION_COUNT`) |
 
 **Example** — from [STONKS](https://github.com/RobMcZag/stonks):
@@ -183,7 +205,7 @@ It is possible to build multiple VER models over the same HIST table to have dif
 ```
 
 The `version_sort_column` drives `VALID_FROM`, `VALID_TO`, and the version ordering.
-Setting it to the business effectivity date (rather than `INGESTION_TS_UTC`) ensures that
+Setting it to a business effectivity date (rather than `INGESTION_TS_UTC`) ensures that
 the temporal window reflects business reality, not the technical loading sequence.
 
 ---
@@ -197,9 +219,8 @@ for change comparison.
 
 Available for advanced use cases where you need the current state of a multiple-version
 HIST model outside of the standard incremental logic or if you have not built a VER model.
-
-As you should build the VER model on top of all your HIST tables, you will use the `IS_CURRENT` column
-created by the VER when you want to keep only the current versions.
+As you should build the VER model on top of all your HIST tables, you can use the `IS_CURRENT` column
+from the VER when you want to identify or keep only the current versions.
 
 **Signature**:
 ```jinja
