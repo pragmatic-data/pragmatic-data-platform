@@ -2,13 +2,17 @@
 
 These are the **default historization macros** for the Storage layer.
 
-Use them when a source entity can exist in multiple distinct states over time and you need to keep all of
-them — for auditing, point-in-time analysis, or building slowly-changing dimensions (SCD).
+Use them when a source entity can exist in multiple distinct states over time (versions) and you need to keep all of
+them — for auditing, point-in-time analysis, building slowly-changing dimensions (SCD) or troubleshooting.
 
-Or just use them as they offer exceptional ease of use and immense resilience to data hiccups:
-as with a single run you can ingest a day or ten years of data without loosing a single version.
-The price to pay: provide a list of one or more columns to sort the rows from the STG model in the desired version order,
-if you want to use what you could consider a better order than sorting by the ingestion timestamp.
+Or just use them as they offer exceptional ease of use, great performance and immense resilience to data hiccups:
+with a single run you can ingest a day or ten years of data without loosing a single version.
+For better versioning list the columns to sort the input from the STG model in the desired version order,
+or stay with the default of sorting by the ingestion timestamp.
+
+All the PDP historization patterns provide insert-only hsitorization: new versions are added and nothing is ever
+changed once it lands in the HIST table. This provides both the best possible performance on column oriented
+databases, and the guarantee that your data is safe and prefectly auditable.
 
 For context and a full example on the overall STG → HIST → VER pattern, see the
 [Storage layer README](../README.md).
@@ -24,7 +28,7 @@ For context and a full example on the overall STG → HIST → VER pattern, see 
 
 ## When to use
 
-Pretty much always. MUST use the multiple-versions pattern when:
+**Pretty much always.** MUST use the multiple-versions pattern when:
 
 - You want to be able to load any lenght of history in a single run, correctly storing all changes.
 - An entity changes over time and all past states are meaningful (e.g. a security whose name changes, a position that evolves daily, an order that gets amended)
