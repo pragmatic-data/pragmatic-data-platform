@@ -6,6 +6,8 @@ Welcome to the **ingestion layer** of the Pragmatic Data Platform (PDP) package.
 - [Ingestion and Export Playbook](#ingestion-and-export-playbook)
 - [Ingestion and Export Setup](#ingestion-and-export-setup)
 - Ingestion >> [Landing Tables Macros](ingestion_lib/README.md#landing-tables-macros)
+  - Batch ingestion: `run_file_ingestion()` (recommended), `run_clean_landing_table()`
+  - Near-real-time: `run_create_pipe()` (Snowpipe, only for real-time ingestion)
 - Export >> [Export Macros](export_lib/README.md)
 
 ## General ingestion and export process
@@ -13,20 +15,36 @@ Ingeston and Export are specular operations on files, one loading data from file
 the other writing data from tables into files.
 
 By working on files they both need to setup the DB objects for File Formats and Stages into a DB and Schema.
-Also the operations to read or write the data are similar, both using the COPY INTO command.
+The operations to read or write the data are also similar, both using the COPY INTO command.
 
-For this reason the library macros are bundeld together under a common `in_out` folder in this package 
+For this reason the library macros are bundeld together under a common `in_out` folder 
 and we suggest to keep together the ingestion/export macros in your projects, grouped by source system, 
 under a common folder named `ingestion`, `export` or `in_out` depending if you have only ingestion, export or both.
 
+The Pragmatic Data Platform can easily ingest from and export to CSV and SEMI-STRUCUTRED files like JSON, Parquet, 
+Avro, or even the old but still alive XML,using internal or external stages, allowing you to ingest and export files 
+from anywhere your Snowflake account is authorized to read.
 
-The Pragmatic Data Platform can easily ingest from and export to CSV and SEMI-STRUCUTRED files in internal or external stages, 
-allowing you to ingest and export files from anywhere your Snowflake account is authorized to read.
+**Scheduled/Frequent ingestion (>1h) VS (near) real-time ingestion (<15min)**  
+An important note is about using project managed ingestion with `run_file_ingestion()`, that is the
+suggested approach for almost all cases given its simplicity of setup and reliability of operation,
+instead of asynchronous ingestion with `run_create_pipe()` (using Snowpipes), that requires more setup
+and leaves us with less control / obsevability / auditing of what is going on.
+
+In my long career I have seen very few cases when there was a real need to justify the extra complexity and
+cost of loading data in near-real time (under 5-10 minutes of latency) and adapting the pipeline to update
+the data at that frequency. In such case the use of Snowpipes is suggested.
+
+In any other case where latency can be 1 hour or more I suggest the use of the project managed ingestion
+with `run_file_ingestion()` that is way easier to set up and manage. Latencies between 15 minute and 1 hour
+fall in a gray area where costs, complexity and need must be analyzed to find the better solution.
 
 ## Ingestion and export playbook
+
 The playbook to ingest data from files or export data to files is the following:
-1. create a setup file to define names and the shared DB objects (schema, file format, stage)  
-   This is explained in the [Ingestion Setup](#ingestion-and-export-setup) section later inthis file.
+
+1. create a setup file to define the DB objects' names and create them (schema, file format, stage)  
+   This is explained in the [Ingestion Setup](#ingestion-and-export-setup) section later in this file.
 
 2. create a .sql file with the YAML config or SQL code for each table to be ingested or exported  
    A. for ingestion read the [Landing Tables Macros](ingestion_lib/README.md#landing-tables-macros) section  
@@ -41,6 +59,7 @@ are extracted to a single location, with the same file format and you generally
 want to put all the landing tables in the same DB schema.
 
 The suggested file organization in your project looks like this:
+
 ```
 /in_out/                        - the base folder for ingestion and export macros, to be added to the macro path
   /system_xxx/                  - the folder to hold everything about a system / domain
@@ -51,7 +70,6 @@ The suggested file organization in your project looks like this:
         /export_abc.sql                 - a file with the macro to export the individual table/view to a set of files
     ...
 ```
-
 
 For the general process to start ingesting data into landing tables, look at the 
 [Ingestion Macros](#ingestion-macros) section in this page.
