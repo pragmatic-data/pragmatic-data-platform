@@ -26,19 +26,20 @@ Use the macros in this page when:
 
 - you need to recognize deleted instances
 - you have very big inputs (hundreds of million rows) and avoiding their sorting saves enough time to accept the limitation
-  of limiting your input to the most current version, with the risk of losing intermediate changes
+  of limiting your input to the most current version, losing intermediate changes
 - your inputs are immutable/rarely mutable transactions, so you want the flexibility to be able to run the ingestion as many
   time as you wish, even on overlapping periods, without loading duplicates, and recognize and store the occasional variation.
+  E.g. page impressions from a web server or an app.
 
 | Macro | Use case |
 | ----- | -------- |
-| `save_history` | Entities that can change over time when quick change detection is all you need — no deletion tracking. |
-| `save_history_with_deletion` | Entities that can disappear from the source. A `deleted = true` row is added when a key is no longer present in the input. This requires a reliable full export as input. |
+| `save_history` | Entities that can change over time when idempotence and quick change detection is all you need — no deletion tracking. |
+| `save_history_with_deletion` | Tracking changes for entities that can disappear from the source. A `deleted = true` row is added when a key is no longer present in the input. This requires a reliable full export as input. |
 | `save_history_with_deletion_from_list` | Deletions are communicated as a separate feed (an explicit list of keys to mark deleted) rather than by absence from the source. This allows to mark deletions also for delta inputs. |
 
 Please note that if you have a CDC that can add a status column from which you can identify that a row is deleted, you can use the normal historization process as the "deletion" becomes just a normal change of the instance, once you add the status column in the HDIFF.
 
-Please note that you can use the [`versions_from_history_with_multiple_versions()`](../multiple_versions/README.md#versions_from_history_with_multiple_versions) macro to provide the `IS_CURRENT`, `VALID_FROM`/`VALID_TO` and
+Also note that you can use the [`versions_from_history_with_multiple_versions()`](../multiple_versions/README.md#versions_from_history_with_multiple_versions) macro to provide the `IS_CURRENT`, `VALID_FROM`/`VALID_TO` and
 other useful columns on top of any HIST model. As usual provide a time based column to pick the versioning timeline.
 
 ---
