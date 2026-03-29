@@ -1,13 +1,13 @@
 /**
  *  Important usage notes:
  *  1. When a Key is marked deleted in the HIST table, it will be added again as not deleted, if it's presented in the STG input.
- *  2. When a Key is not marked deleted in the HIST table, it will be added again marked deleted, if it's presented in the DEL input.
+ *  2. When a Key is not marked deleted in the HIST table, it will be added again as deleted, if it's presented in the DEL input.
  *  3. The combined result of #1 and #2 is that if a key is present in both STG and DEL input, the result will depend on its state in HIST.
- *     If the key is delete, it will be undeleted, while if it was not delete, it will be deleted.
- *  4. A priority must be estabilished between the two inputs, if we want to remove this alternance.
- *     Giving priority to the STG input, it would mean that keys appearing in STG would be removed from the deletion list.
- *     Giving priority to the DEL input, it would mean that keys appearing in DEL list would be removed from the STG input.
- *     The above rules can be implemented in the STG model being fed to the macro.
+ *     If the key is deleted, it will be undeleted, while if it was not deleted, it will be deleted.
+ *  4. A priority must be estabilished between the two inputs, if you want to remove this alternance.
+ *     To give priority to the STG input, you need to remove from the deletion list the keys appearing in STG input.
+ *     To give priority to the DEL input, you need to remove from the STG input the keys appearing in DEL list.
+ *     The above rules can be implemented in the STG model being fed to the macro or in an intermediate step between STG and HIST.
  */
 {% macro save_history_with_deletion_from_list(
     input_rel,

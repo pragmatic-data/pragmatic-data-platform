@@ -86,7 +86,7 @@ see [storage/README.md](../README.md#technical-timeline-considerations)
 | `history_rel` | Relation | `this` | The HIST table to compare against. BETTER LEFT ALONE. Override to merge history from an external source or for test setups. |
 | `load_ts_column` | string | `INGESTION_TS_UTC` | The primary sort key to historicize versions. A single, reliable column, usually the ingestion timestamp in the LT, that determines your load batches. Primary sort key to extract the most recent version from the history. |
 | `sort_expr` | string | `INGESTION_TS_UTC` | Secondary sort expression to order past to present in a fully deterministic way the versions (of one key) within a load batch comprising multiple versions. |
-| `high_watermark_column` | string | `INGESTION_TS_UTC` | Column used for the per-key high-watermark filter. Must have same or more detail than `load_ts_column`. Rows with a value greater than the value in the current HIST record are considered for loading. No MAX involved. |
+| `high_watermark_column` | string | `INGESTION_TS_UTC` | Column used for the **per-key** high-watermark filter. Must have same or more detail than `load_ts_column`. Rows with a value greater than the value in the current HIST record are considered for loading. No MAX involved. |
 | `high_watermark_test` | string | `>` | Comparison operator for the high-watermark filter (`>` or `>=`). |
 | `input_filter_expr` | string | `'true'` | Additional SQL WHERE condition on the input before comparison. |
 | `history_filter_expr` | string | `'true'` | Additional SQL WHERE condition when reading current state from HIST. |
