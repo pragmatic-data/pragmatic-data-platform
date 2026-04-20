@@ -1,10 +1,64 @@
 # Stage Macros
 
-### Building staging models
+Staging is the first step of the historization pipeline using the STG → HIST → VER pattern in the Pragmatic Data Platform (PDP).
 
-#### Stage ([source](stage.sql)) ([docs](stage_macros_docs.yml))
+While HIST and VER steps are fully automated from a handful of inputs, the staging step is where the edveloper's choices shine
+to make the historicized data as usable as possible for the models in the refined layer, or in other projects in a data mesh setup,
+without altering the semantic of the incoming data.
+
+The typical operations performed in a STG model cover column renaming, data type casting, column content splitting,
+application of system specific or global technical rules (like upper/lower case, padding/unpadding)... and more.
+For auditing and extreme caution is always possible to keep both the original input and the adapted one.
+
+A key step for the STG model in the PDP pipeline is to calculate the key of the entity (HKEY) and the change fingerprint (HDIFF)
+used to streamline the historization pattern pipeline. It is advisable to also calculate HKEYs for the foreign keys in the entity,
+especially if the business key is a compound, multi column key.
+
+Other optional operations performed by the STG model include adding eventual default records and filtering the input, both with a
+where predicate and/or a qualify window expression.
+
+For context and a full example on the overall STG → HIST → VER pattern, see the [Storage layer README](../README.md).
+
+**Table of Contents**
+
+- [`stage()`](#stage-source-docs)  
+  The macro to generate the staging model from guided/simplified input as a YAML document.
+- [`landing_filter()`](#landing_filter-source)  
+  The macro to easily generate the expression to filter the STG input based on time duration or number of ingestion batches.
+
+## Stage ([source](stage.sql)) ([docs](stage_macros_docs.yml))
 
 The macro to build a STAGE model (default prefix STG) from metadata passed as YAML.
+
+Reads from a source model (a landing table or any upstream relation), applies column
+selection/renaming/casting via `source` and `calculated_columns`, computes hash-based
+surrogate keys and change fingerprints via `hashed_columns`, optionally injects
+default records, and optionally deduplicates rows using a `QUALIFY` window.
+
+**Signature**:
+```jinja
+{{ pragmatic_data.stage(
+    source_model,
+    source              = none,
+    calculated_columns  = none,
+    hashed_columns      = none,
+    default_records     = none,
+    remove_duplicates   = none,
+) }}
+```
+
+**Parameters**:
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `source_model` | Relation | — | **Required.** The upstream model or source to read from, e.g. `source('MY_SRC', 'MY_TABLE')` or `ref('SOME_MODEL')` |
+| `source` | dict | `none` | Column selection config: `columns.include_all` (bool), `columns.exclude_columns`, `columns.replace_columns`, `columns.rename_columns`, and `where` (SQL filter). |
+| `calculated_columns` | list | `none` | List of `- ALIAS: EXPRESSION` mappings. Use `- COL_NAME` to pass through with the same name. To provide string literals: `"'value'"` or `!value`. |
+| `hashed_columns` | dict or list | `none` | Hash definitions. Each key is the output column name; the value is a list of source columns to hash. Used to compute HKEY and HDIFF, and eventually HKEYs for the foreign keys. |
+| `default_records` | list | `none` | List of named default/unknown records to inject (e.g. `-1 Unknown`, `-2 Missing`). Each entry is a dict of `- COL: EXPRESSION` pairs. |
+| `remove_duplicates` | dict | `none` | Deduplication config using a `QUALIFY` clause: `partition_by` (list), `order_by` (list), `qualify_function` (default `row_number()`), `qualify_operator` (default `=`), `qualify_value` (default `1`). |
+
+For a sample of the YAML definition and macro usage see [End-to-end example](../README.md#end-to-end-example)
 
 **Usage with local YAML definition:**
 
@@ -56,7 +110,7 @@ The above config is used in the model named `YOUR_STAGE_MODEL` as shown below:
 ) }}
 ```
 
-#### landing_filter ([source](landing_filter.sql))
+## landing_filter ([source](landing_filter.sql))
 
 Generates a SQL `WHERE` condition to filter a STG model to only read the most recent
 data from a landing table — by number of batches, by age in days, or by age in hours.
