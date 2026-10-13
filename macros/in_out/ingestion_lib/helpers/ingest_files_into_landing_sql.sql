@@ -6,10 +6,13 @@
     file_pattern, 
     full_format_name,
     ingestion_ts_utc,
-    add_file_content_key
+    add_file_content_key,
+    stage_refresh_before_copy = True
 ) %}
 
-{{ pragmatic_data.refresh_stage_sql(full_stage_name) }}
+{% if stage_refresh_before_copy %}
+    {{ pragmatic_data.refresh_stage_sql(full_stage_name) }}
+{% endif %}
 
 BEGIN TRANSACTION;
 

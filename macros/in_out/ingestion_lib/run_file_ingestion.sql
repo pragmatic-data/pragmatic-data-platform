@@ -1,7 +1,8 @@
 {% macro run_file_ingestion(
     landing_table_dict,
     ingestion_dict,
-    recreate_table = false
+    recreate_table = false,
+    stage_refresh_before_copy = True
 ) %}
 {% if execute %}
     
@@ -33,6 +34,7 @@
         full_format_name = ingestion_dict.format_name,
         ingestion_ts_utc = run_started_at,
         add_file_content_key = add_file_content_key,
+        stage_refresh_before_copy = stage_refresh_before_copy,
 ) ) %}
 
 {% set ingestion_result_str %}
