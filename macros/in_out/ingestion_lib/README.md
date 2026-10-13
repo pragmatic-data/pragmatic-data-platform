@@ -49,7 +49,7 @@ To simplify operations it is advised to create a `load_all_SYSX()` that call the
 so that you can trigger the ingestion of all the Landing Tables of a sistem with the single `load_all_SYSX()` macro.
 
 ```jinja
-{% macro load_RAW_ORDERS(recreate_table=false) %}
+{% macro load_RAW_ORDERS(recreate_table=false, stage_refresh_before_copy=True) %}
 
 {%- set yaml_str -%}
 ingestion:
@@ -75,9 +75,10 @@ landing_table:
 {%- set metadata_dict = fromyaml(yaml_str) -%}
 
 {% do pragmatic_data.run_file_ingestion(
-        landing_table_dict = metadata_dict['landing_table'],
-        ingestion_dict     = metadata_dict['ingestion'],
-        recreate_table     = recreate_table
+        landing_table_dict         = metadata_dict['landing_table'],
+        ingestion_dict             = metadata_dict['ingestion'],
+        recreate_table             = recreate_table,
+        stage_refresh_before_copy  = stage_refresh_before_copy
 ) %}
 
 {% endmacro %}
@@ -98,6 +99,9 @@ Creates the landing table if it doesn't exist, runs `COPY INTO` using named fiel
 expressions, and — if the `cleanup` key is present in `landing_table_dict` — removes
 old rows from the landing table after ingestion.
 Supports `add_file_content_key` for deduplication by file hash.
+Set `stage_refresh_before_copy` to `False` to skip the `ALTER STAGE ... REFRESH`
+before the `COPY INTO` (e.g. for stages on GCS that do not support it, or to avoid
+repeated refreshes on large stages with hundreds of thousands of files).
 
 **`See the code block above for the usage exampe of run_file_ingestion(...)`**
 
@@ -203,13 +207,14 @@ the dict (safe to call as a standalone).
 
 ### ingest_into_landing_sql(...)
 
-Generates `ALTER STAGE REFRESH; BEGIN; COPY INTO ... ($1..$N); COMMIT;` for CSV files.
+Generates `[ALTER STAGE REFRESH;] BEGIN; COPY INTO ... ($1..$N); COMMIT;` for CSV files.
 Used by `run_CSV_ingestion()`.
 
 ### ingest_files_into_landing_sql(...)
 
 Like `ingest_into_landing_sql()` but uses named field expressions via `copy_into__sql()`.
-Used by `run_file_ingestion()`.
+Used by `run_file_ingestion()`. The `ALTER STAGE ... REFRESH` is conditional on
+`stage_refresh_before_copy` (default `True`).
 
 ### ingest_semi_structured_into_landing_sql(...)
 

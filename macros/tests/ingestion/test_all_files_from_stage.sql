@@ -2,14 +2,14 @@
     pattern,
     stage_name,
     min_file_size = None,
-    relative_path_prefix = None
+    relative_path_prefix = None,
+    stage_refresh_before_test = True
 ) -%}
 
-{% set query %}
-    ALTER STAGE {{ stage_name }} REFRESH;
-{% endset %}
+{% if stage_refresh_before_test %}
+    {% do pragmatic_data.run_refresh_stage(stage_name) %}
+{% endif %}
 
-{% do run_query(query) %}
 
 WITH
 all_files_in_stg as (
