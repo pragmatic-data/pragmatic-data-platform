@@ -18,7 +18,7 @@ to pin a specific version:
 ```
   # Pragmatic Data Platform package
   - git: https://github.com/pragmatic-data/pragmatic-data-platform.git
-    revision: 0.4.18
+    revision: 0.4.19
 ```
 
 For the full explanation on how to install packages, please [read the dbt docs](https://docs.getdbt.com/docs/build/packages).
